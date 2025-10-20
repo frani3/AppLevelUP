@@ -44,12 +44,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 
 // --- Para los Chips de Categoría ---
 import androidx.compose.material3.SuggestionChipDefaults
+import com.applevelup.levepupgamerapp.presentation.ui.theme.*
 
-// --- COLORES PRINCIPALES DEL DISEÑO ---
-val PureBlackBackground = Color.Black
-val TopBarAndDrawerColor = Color.Black.copy(alpha = 0.85f)
-val PrimaryPurple = Color(0xFFC000FF)
-val CardBackgroundColor = Color(0xFF2C2C2C) // Un poco más opaco para mejor legibilidad
 
 // --- DATOS DE EJEMPLO (Esto vendría de tu ViewModel) ---
 data class Product(val name: String, val price: String, val imageRes: Int)
@@ -57,9 +53,9 @@ data class Category(val name: String, val icon: @Composable () -> Unit)
 data class Promotion(val title: String, val subtitle: String, val imageRes: Int)
 
 val samplePromotions = listOf(
-    Promotion("OFERTAS DE OTOÑO", "Hasta 40% en periféricos", R.drawable.promo_banner_2),
+    Promotion("OFERTAS DE OTOÑO", "Hasta 40% en periféricos", R.drawable.promo_banner_1),
     Promotion("NUEVOS MONITORES", "Descubre la resolución 4K", R.drawable.promo_banner_1),
-    Promotion("SILLAS GAMER PRO", "Comodidad para largas sesiones", R.drawable.promo_banner_2)
+    Promotion("SILLAS GAMER PRO", "Comodidad para largas sesiones", R.drawable.promo_banner_1)
 )
 
 val sampleCategories = listOf(
@@ -314,7 +310,6 @@ fun ProductCard(product: Product) {
 
 
 // --- COMPONENTES ANTIGUOS QUE SE MANTIENEN (TopBar, SearchBar, Drawer) ---
-// (El código de LandingPageTopBar, SearchBar y AppDrawerContent va aquí, sin cambios)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LandingPageTopBar(
@@ -474,39 +469,16 @@ fun AppDrawerContent(navController: NavController) {
                             fontSize = 14.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { /* navController.navigate("categoria/$categoryName") */ }
+                                .clickable {
+                                    // --- RUTA DE NAVEGACIÓN CORREGIDA ---
+                                    navController.navigate("productos/$categoryName")
+                                }
                                 .padding(horizontal = 16.dp, vertical = 12.dp)
                         )
                     }
                 }
             }
-            NavigationDrawerItem(
-                label = { Text("NOSOTROS", fontWeight = FontWeight.SemiBold) },
-                selected = false,
-                onClick = { /* TODO: navController.navigate("nosotros") */ },
-                colors = NavigationDrawerItemDefaults.colors(
-                    unselectedContainerColor = Color.Transparent,
-                    unselectedTextColor = Color.White
-                )
-            )
-            NavigationDrawerItem(
-                label = { Text("COMUNIDAD", fontWeight = FontWeight.SemiBold) },
-                selected = false,
-                onClick = { /* TODO: navController.navigate("comunidad") */ },
-                colors = NavigationDrawerItemDefaults.colors(
-                    unselectedContainerColor = Color.Transparent,
-                    unselectedTextColor = Color.White
-                )
-            )
-            NavigationDrawerItem(
-                label = { Text("CONTACTO", fontWeight = FontWeight.SemiBold) },
-                selected = false,
-                onClick = { /* TODO: navController.navigate("contacto") */ },
-                colors = NavigationDrawerItemDefaults.colors(
-                    unselectedContainerColor = Color.Transparent,
-                    unselectedTextColor = Color.White
-                )
-            )
         }
     }
 }
+

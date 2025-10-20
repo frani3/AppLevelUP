@@ -1,11 +1,11 @@
 package com.applevelup.levepupgamerapp.presentation.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -14,13 +14,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 
 @Composable
 fun LoginScreen(
@@ -38,7 +42,7 @@ fun LoginScreen(
     // --- COLORES ---
     // Definimos los colores del diseño
     val backgroundColor = Color.Black
-    val primaryColor = Color(0xFFC000FF) // Un morado vibrante
+    //val primaryColor = Color(0xFFC000FF) // Usaremos el del tema centralizado
     val textFieldBackgroundColor = Color.DarkGray.copy(alpha = 0.3f)
     val lightTextColor = Color.LightGray
 
@@ -76,8 +80,8 @@ fun LoginScreen(
                     focusedContainerColor = textFieldBackgroundColor,
                     unfocusedContainerColor = textFieldBackgroundColor,
                     disabledContainerColor = textFieldBackgroundColor,
-                    focusedIndicatorColor = primaryColor, // Color del borde al seleccionar
-                    unfocusedIndicatorColor = primaryColor, // Color del borde
+                    focusedIndicatorColor = PrimaryPurple, // Color del borde al seleccionar
+                    unfocusedIndicatorColor = PrimaryPurple, // Color del borde
                     focusedLabelColor = lightTextColor,
                     unfocusedLabelColor = lightTextColor,
                     focusedTextColor = Color.White,
@@ -99,8 +103,8 @@ fun LoginScreen(
                     focusedContainerColor = textFieldBackgroundColor,
                     unfocusedContainerColor = textFieldBackgroundColor,
                     disabledContainerColor = textFieldBackgroundColor,
-                    focusedIndicatorColor = primaryColor,
-                    unfocusedIndicatorColor = primaryColor,
+                    focusedIndicatorColor = PrimaryPurple,
+                    unfocusedIndicatorColor = PrimaryPurple,
                     focusedLabelColor = lightTextColor,
                     unfocusedLabelColor = lightTextColor,
                     focusedTextColor = Color.White,
@@ -138,7 +142,7 @@ fun LoginScreen(
                         checked = rememberMe,
                         onCheckedChange = { rememberMe = it },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = primaryColor,
+                            checkedColor = PrimaryPurple,
                             uncheckedColor = lightTextColor
                         )
                     )
@@ -177,11 +181,28 @@ fun LoginScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor
+                    containerColor = PrimaryPurple
                 )
             ) {
                 Text(text = "Ingresar", fontSize = 18.sp, color = Color.White)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // --- 6. TEXTO PARA CREAR CUENTA (NUEVO) ---
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = lightTextColor)) {
+                        append("¿No tienes una cuenta? ")
+                    }
+                    withStyle(style = SpanStyle(color = PrimaryPurple, fontWeight = FontWeight.Bold)) {
+                        append("Regístrate")
+                    }
+                },
+                modifier = Modifier.clickable {
+                    navController.navigate("registro")
+                }
+            )
         }
     }
 }
