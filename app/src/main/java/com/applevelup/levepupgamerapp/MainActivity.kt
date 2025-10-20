@@ -10,10 +10,19 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.activity.enableEdgeToEdge
+import com.applevelup.levepupgamerapp.presentation.ui.screens.LandingPageScreen
+import com.applevelup.levepupgamerapp.presentation.ui.screens.LoginScreen
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ui.theme.LevepUpGamerAPPTheme
-import com.applevelup.levepupgamerapp.presentation.viewmodel.ui.screens.* class MainActivity : ComponentActivity() {
+import com.applevelup.levepupgamerapp.presentation.viewmodel.ui.screens.*
+
+
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
+
         setContent {
             LevepUpGamerAPPTheme {
                 Surface(
@@ -42,7 +51,7 @@ import com.applevelup.levepupgamerapp.presentation.viewmodel.ui.screens.* class 
                         }
 
                         composable(route = "landing_page") {
-                            LandingScreen(navController = navController)
+                            LandingPageScreen(navController = navController)
                         }
 
                         composable(route = "categorias") {

@@ -1,38 +1,45 @@
 package com.applevelup.levepupgamerapp.presentation.viewmodel.ui.screens
 
-// En SplashScreen.kt
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
+import com.applevelup.levepupgamerapp.R
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
 
-    // 1. Esto ejecuta un bloque de código (coroutine) solo una vez
-    //    cuando la pantalla aparece.
+    // Esta lógica de 2 segundos y navegación se mantiene igual
     LaunchedEffect(key1 = true) {
-        // 2. Espera 2 segundos (2000 milisegundos)
         delay(2000L)
-
-        // 3. Navega a la pantalla de login
         navController.navigate("login") {
-            // 4. (Importante) Borra el Splash del historial.
-            //    Así el usuario no puede "volver" al Splash.
             popUpTo("splash") { inclusive = true }
         }
     }
 
-    // Mientras esperas, muestras tu logo o un texto
+// --- DISEÑO NUEVO ---
+    // Un Box que ocupa toda la pantalla, con fondo negro
+    // y alinea su contenido al centro.
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black), // Fondo negro
+        contentAlignment = Alignment.Center // Contenido centrado
     ) {
-        Text(text = "LevelUp APP") // <-- (Aquí puedes poner tu logo)
+        // Tu imagen de logo (asegúrate que se llame así en drawable)
+        Image(
+            painter = painterResource(id = R.drawable.splash_logo),
+            contentDescription = "Logo LevelUp Gamer"
+            // Nota: No usamos fillMaxSize() ni ContentScale.Crop aquí
+            // para que el logo mantenga su tamaño original.
+        )
     }
 }
