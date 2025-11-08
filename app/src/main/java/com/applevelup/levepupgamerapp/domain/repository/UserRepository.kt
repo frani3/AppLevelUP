@@ -7,4 +7,6 @@ interface UserRepository {
     fun getUserProfile(): UserProfile
     fun getUserOrders(): List<Order>
     fun logout()
+    fun updateUser(fullName: String, email: String, newPassword: String?)
+
 }

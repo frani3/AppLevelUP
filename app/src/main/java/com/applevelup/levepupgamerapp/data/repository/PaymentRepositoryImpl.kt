@@ -16,4 +16,10 @@ class PaymentRepositoryImpl : PaymentRepository {
     override fun deletePaymentMethod(id: Int) {
         methods.removeAll { it.id == id }
     }
+
+    override fun addPaymentMethod(method: PaymentMethod) {
+        methods.add(method)
+    }
+
+
 }
