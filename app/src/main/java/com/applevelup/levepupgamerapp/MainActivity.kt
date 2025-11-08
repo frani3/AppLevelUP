@@ -27,8 +27,8 @@ import com.applevelup.levepupgamerapp.presentation.ui.screens.PerfilScreen
 import com.applevelup.levepupgamerapp.presentation.ui.screens.ProductDetailScreen
 import com.applevelup.levepupgamerapp.presentation.ui.screens.ProductListScreen
 import com.applevelup.levepupgamerapp.presentation.ui.screens.RegistroScreen
+import com.applevelup.levepupgamerapp.presentation.ui.screens.SplashScreen
 import com.applevelup.levepupgamerapp.presentation.ui.theme.LevepUpGamerAPPTheme
-import com.applevelup.levepupgamerapp.presentation.viewmodel.ui.screens.*
 
 
 class MainActivity : ComponentActivity() {

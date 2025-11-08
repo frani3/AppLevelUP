@@ -1,4 +1,4 @@
-package com.applevelup.levepupgamerapp.presentation.viewmodel.ui.theme
+package com.applevelup.levepupgamerapp.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

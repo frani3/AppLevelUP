@@ -1,4 +1,4 @@
-package com.applevelup.levepupgamerapp.presentation.viewmodel.ui.screens
+package com.applevelup.levepupgamerapp.presentation.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

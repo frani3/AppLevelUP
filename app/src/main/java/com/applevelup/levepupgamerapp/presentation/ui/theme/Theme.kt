@@ -5,8 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.Typography
-import com.applevelup.levepupgamerapp.presentation.viewmodel.ui.theme.Typography
 
 // 2. USAMOS NUESTROS COLORES PERSONALIZADOS PARA EL TEMA
 private val DarkColorScheme = darkColorScheme(
