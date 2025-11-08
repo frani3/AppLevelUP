@@ -1,4 +1,7 @@
 package com.applevelup.levepupgamerapp.domain.repository
 
-class ProducRepository {
+import com.applevelup.levepupgamerapp.domain.model.Product
+
+interface ProductRepository {
+    fun getProductsByCategory(categoryName: String): List<Product>
 }

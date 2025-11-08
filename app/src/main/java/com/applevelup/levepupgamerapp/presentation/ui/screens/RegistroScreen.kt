@@ -24,22 +24,29 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
+import com.applevelup.levepupgamerapp.presentation.viewmodel.RegistroViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistroScreen(navController: NavController) {
-
-    // --- ESTADOS ---
-    var username by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
+fun RegistroScreen(
+    navController: NavController,
+    viewModel: RegistroViewModel = viewModel ()
+) {
+    val state by viewModel.uiState.collectAsState()
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
-    var termsAccepted by rememberSaveable { mutableStateOf(false) }
 
+    // Navegación automática cuando se registra
+    if (state.isRegisterSuccessful) {
+        LaunchedEffect(Unit) {
+            navController.navigate("landing_page") {
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -53,38 +60,50 @@ fun RegistroScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             item {
-                // 1. Título "Crear Cuenta"
                 Text(
                     text = "Crear Cuenta",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
+
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 2. Campos de Texto
+                // Nombre
                 OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
+                    value = state.username,
+                    onValueChange = viewModel::onUsernameChange,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Nombre de Usuario") },
                     colors = getTextFieldColors(),
                     singleLine = true
                 )
+                state.errors.usernameError?.let {
+                    Text(text = it, color = Color.Red, fontSize = 12.sp)
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Correo
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = state.email,
+                    onValueChange = viewModel::onEmailChange,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Correo Electrónico") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     colors = getTextFieldColors(),
                     singleLine = true
                 )
+                state.errors.emailError?.let {
+                    Text(text = it, color = Color.Red, fontSize = 12.sp)
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Contraseña
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = state.password,
+                    onValueChange = viewModel::onPasswordChange,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Contraseña") },
                     colors = getTextFieldColors(),
@@ -94,14 +113,20 @@ fun RegistroScreen(navController: NavController) {
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, "Toggle password visibility")
+                            Icon(imageVector = image, contentDescription = null)
                         }
                     }
                 )
+                state.errors.passwordError?.let {
+                    Text(text = it, color = Color.Red, fontSize = 12.sp)
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Confirmar contraseña
                 OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    value = state.confirmPassword,
+                    onValueChange = viewModel::onConfirmPasswordChange,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Confirmar Contraseña") },
                     colors = getTextFieldColors(),
@@ -111,20 +136,24 @@ fun RegistroScreen(navController: NavController) {
                     trailingIcon = {
                         val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                            Icon(imageVector = image, "Toggle password visibility")
+                            Icon(imageVector = image, contentDescription = null)
                         }
                     }
                 )
+                state.errors.confirmPasswordError?.let {
+                    Text(text = it, color = Color.Red, fontSize = 12.sp)
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 3. Checkbox de Términos y Condiciones
+                // Checkbox de Términos
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = termsAccepted,
-                        onCheckedChange = { termsAccepted = it },
+                        checked = state.termsAccepted,
+                        onCheckedChange = viewModel::onTermsChange,
                         colors = CheckboxDefaults.colors(
                             checkedColor = PrimaryPurple,
                             uncheckedColor = Color.LightGray
@@ -132,51 +161,45 @@ fun RegistroScreen(navController: NavController) {
                     )
                     Text(text = "Acepto los términos y condiciones", color = Color.LightGray, fontSize = 14.sp)
                 }
+                state.errors.termsError?.let {
+                    Text(text = it, color = Color.Red, fontSize = 12.sp)
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // 4. Botón "Registrarse"
+                // Botón Registrarse
                 Button(
-                    onClick = {
-                        // TODO: Lógica de registro (validaciones, etc.)
-                        // viewModel.register(...)
-                        navController.navigate("landing_page") {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        }
-                    },
+                    onClick = { viewModel.register() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple),
-                    enabled = termsAccepted // El botón solo se activa si se aceptan los términos
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
                 ) {
-                    Text(text = "Registrarse", fontSize = 18.sp, color = Color.White)
+                    if (state.isLoading) {
+                        CircularProgressIndicator(color = Color.White)
+                    } else {
+                        Text("Registrarse", fontSize = 18.sp, color = Color.White)
+                    }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 5. Texto para volver a Iniciar Sesión
+                // Ir a Login
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color.LightGray)) {
-                            append("¿Ya tienes una cuenta? ")
-                        }
-                        withStyle(style = SpanStyle(color = PrimaryPurple, fontWeight = FontWeight.Bold)) {
-                            append("Inicia Sesión")
-                        }
+                        withStyle(SpanStyle(color = Color.LightGray)) { append("¿Ya tienes una cuenta? ") }
+                        withStyle(SpanStyle(color = PrimaryPurple, fontWeight = FontWeight.Bold)) { append("Inicia Sesión") }
                     },
-                    modifier = Modifier.clickable {
-                        navController.navigate("login")
-                    }
+                    modifier = Modifier.clickable { navController.navigate("login") }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
-// Copiamos la función de ayuda para los colores de los campos de texto
 @Composable
-private fun getTextFieldColors(): TextFieldColors {
+fun getTextFieldColors(): TextFieldColors {
     val textFieldBackgroundColor = Color.DarkGray.copy(alpha = 0.3f)
     val lightTextColor = Color.LightGray
     return TextFieldDefaults.colors(
