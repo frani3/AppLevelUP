@@ -197,7 +197,7 @@ private class ExpiryDateVisualTransformation : VisualTransformation {
 
 // --- FUNCIÓN DE AYUDA AÑADIDA ---
 @Composable
-private fun getTextFieldColors(): TextFieldColors {
+fun getTextFieldColors(): TextFieldColors {
     val textFieldBackgroundColor = Color.DarkGray.copy(alpha = 0.3f)
     val lightTextColor = Color.LightGray
     return TextFieldDefaults.colors(
