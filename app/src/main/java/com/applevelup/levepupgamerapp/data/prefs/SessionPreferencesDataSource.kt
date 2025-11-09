@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -35,12 +36,22 @@ class SessionPreferencesDataSource(context: Context) {
         }
         .map { preferences ->
             val seeded = preferences[KEY_SEEDED] ?: false
+            val version = preferences[KEY_VERSION] ?: 0
+            if (version < CURRENT_VERSION) {
+                return@map SessionState(
+                    isLoggedIn = false,
+                    userId = null,
+                    email = superAdmin.email,
+                    fullName = null,
+                    rememberMe = true
+                )
+            }
             if (!seeded) {
                 return@map SessionState(
-                    isLoggedIn = true,
-                    userId = superAdmin.id,
+                    isLoggedIn = false,
+                    userId = null,
                     email = superAdmin.email,
-                    fullName = superAdmin.fullName,
+                    fullName = null,
                     rememberMe = true
                 )
             }
@@ -59,10 +70,11 @@ class SessionPreferencesDataSource(context: Context) {
             if (preferences[KEY_SEEDED] == true) return@edit
 
             preferences[KEY_SEEDED] = true
-            preferences[KEY_LOGGED_IN] = true
-            preferences[KEY_USER_ID] = superAdmin.id
+            preferences[KEY_VERSION] = CURRENT_VERSION
+            preferences[KEY_LOGGED_IN] = false
+            preferences.remove(KEY_USER_ID)
             preferences[KEY_EMAIL] = superAdmin.email
-            preferences[KEY_FULL_NAME] = superAdmin.fullName
+            preferences.remove(KEY_FULL_NAME)
             preferences[KEY_REMEMBER_ME] = true
         }
     }
@@ -70,6 +82,7 @@ class SessionPreferencesDataSource(context: Context) {
     suspend fun saveSession(state: SessionState) {
         dataStore.edit { preferences ->
             preferences[KEY_SEEDED] = true
+            preferences[KEY_VERSION] = CURRENT_VERSION
             preferences[KEY_LOGGED_IN] = state.isLoggedIn
 
             if (state.userId != null) {
@@ -100,22 +113,26 @@ class SessionPreferencesDataSource(context: Context) {
     }
 
     suspend fun clearSession() {
-        dataStore.edit { preferences ->
-            preferences[KEY_SEEDED] = true
-            preferences[KEY_LOGGED_IN] = false
-            preferences.remove(KEY_USER_ID)
-            preferences.remove(KEY_EMAIL)
-            preferences.remove(KEY_FULL_NAME)
-            preferences[KEY_REMEMBER_ME] = false
-        }
+        val current = sessionFlow.first()
+        saveSession(
+            SessionState(
+                isLoggedIn = false,
+                userId = null,
+                email = if (current.rememberMe) current.email else null,
+                fullName = null,
+                rememberMe = current.rememberMe
+            )
+        )
     }
 
     companion object {
+        private const val CURRENT_VERSION = 2
         private val KEY_SEEDED = booleanPreferencesKey("seeded")
         private val KEY_LOGGED_IN = booleanPreferencesKey("logged_in")
         private val KEY_USER_ID = longPreferencesKey("user_id")
         private val KEY_EMAIL = stringPreferencesKey("email")
         private val KEY_FULL_NAME = stringPreferencesKey("full_name")
         private val KEY_REMEMBER_ME = booleanPreferencesKey("remember_me")
+        private val KEY_VERSION = intPreferencesKey("prefs_version")
     }
 }

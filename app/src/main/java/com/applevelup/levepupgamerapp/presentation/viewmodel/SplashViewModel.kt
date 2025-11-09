@@ -1,5 +1,6 @@
 package com.applevelup.levepupgamerapp.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
@@ -29,6 +30,7 @@ class SplashViewModel(
         viewModelScope.launch {
             delay(2000) // animación / logo
             val session = getSessionUseCase()
+            Log.d("SplashViewModel", "session = $session")
             val dest = if (session.isLoggedIn) SplashDestination.HOME else SplashDestination.LOGIN
             _uiState.update { it.copy(destination = dest) }
         }

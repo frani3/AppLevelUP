@@ -16,6 +16,7 @@ import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
 import com.applevelup.levepupgamerapp.presentation.viewmodel.UserViewModel
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +25,14 @@ fun ProfileScreen(
     viewModel: UserViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.logoutEvents.collect {
+            navController.navigate("login") {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -62,12 +71,7 @@ fun ProfileScreen(
                 item {
                     SettingsMenu(
                         navController = navController,
-                        onLogout = {
-                            viewModel.logout()
-                            navController.navigate("login") {
-                                popUpTo(navController.graph.id) { inclusive = true }
-                            }
-                        }
+                        onLogout = viewModel::logout
                     )
                 }
             }

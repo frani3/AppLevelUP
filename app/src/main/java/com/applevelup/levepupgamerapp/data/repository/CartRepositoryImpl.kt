@@ -15,40 +15,40 @@ class CartRepositoryImpl(
     private val productDao: ProductDao = LevelUpApplication.database.productDao()
 ) : CartRepository {
 
-    override fun observeCartItems(): Flow<List<CartItem>> {
-        return cartDao.observeCartItems().map { relations ->
+    override fun observeCartItems(userId: Long): Flow<List<CartItem>> {
+        return cartDao.observeCartItems(userId).map { relations ->
             relations.map(CartMapper::toDomain)
         }
     }
 
-    override suspend fun addProduct(productId: Int, quantity: Int) {
+    override suspend fun addProduct(userId: Long, productId: Int, quantity: Int) {
         productDao.getProductById(productId)
             ?: throw IllegalArgumentException("Producto inexistente con id=$productId")
 
-        val current = cartDao.getByProductId(productId)
+        val current = cartDao.getByProductId(userId, productId)
         val newQuantity = (current?.quantity ?: 0) + quantity
-        cartDao.upsert(CartItemEntity(productId = productId, quantity = newQuantity))
+        cartDao.upsert(CartItemEntity(userId = userId, productId = productId, quantity = newQuantity))
     }
 
-    override suspend fun updateQuantity(productId: Int, quantity: Int) {
+    override suspend fun updateQuantity(userId: Long, productId: Int, quantity: Int) {
         if (quantity <= 0) {
-            cartDao.deleteByProductId(productId)
+            cartDao.deleteByProductId(userId, productId)
             return
         }
 
-        val current = cartDao.getByProductId(productId)
+        val current = cartDao.getByProductId(userId, productId)
         if (current == null) {
-            cartDao.upsert(CartItemEntity(productId = productId, quantity = quantity))
+            cartDao.upsert(CartItemEntity(userId = userId, productId = productId, quantity = quantity))
         } else {
-            cartDao.updateQuantity(productId, quantity)
+            cartDao.updateQuantity(userId, productId, quantity)
         }
     }
 
-    override suspend fun removeItem(productId: Int) {
-        cartDao.deleteByProductId(productId)
+    override suspend fun removeItem(userId: Long, productId: Int) {
+        cartDao.deleteByProductId(userId, productId)
     }
 
-    override suspend fun clearCart() {
-        cartDao.clear()
+    override suspend fun clearCart(userId: Long) {
+        cartDao.clear(userId)
     }
 }

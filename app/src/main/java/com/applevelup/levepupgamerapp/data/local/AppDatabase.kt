@@ -14,7 +14,7 @@ import com.applevelup.levepupgamerapp.data.local.seed.LocalSeedData
 
 @Database(
 	entities = [ProductEntity::class, CartItemEntity::class, UserEntity::class],
-	version = 1,
+	version = 2,
 	exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

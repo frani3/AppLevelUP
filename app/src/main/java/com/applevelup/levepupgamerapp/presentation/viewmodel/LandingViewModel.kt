@@ -3,7 +3,9 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.repository.LandingRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.*
+import com.applevelup.levepupgamerapp.domain.repository.SessionRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +21,8 @@ data class LandingUiState(
 )
 
 class LandingViewModel(
-    private val repo: LandingRepositoryImpl = LandingRepositoryImpl()
+    private val repo: LandingRepositoryImpl = LandingRepositoryImpl(),
+    private val sessionRepository: SessionRepository = SessionRepositoryImpl()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LandingUiState())
@@ -51,5 +54,9 @@ class LandingViewModel(
                 }
             }
         }
+    }
+
+    suspend fun logout() {
+        sessionRepository.clearSession()
     }
 }

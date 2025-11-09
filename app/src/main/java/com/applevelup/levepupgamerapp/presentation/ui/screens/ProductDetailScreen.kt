@@ -27,6 +27,7 @@ fun ProductDetailScreen(
     viewModel: ProductDetailViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(productId) {
         viewModel.loadProduct(productId)
@@ -47,7 +48,15 @@ fun ProductDetailScreen(
         return
     }
 
+    LaunchedEffect(state.addedToCart) {
+        if (state.addedToCart) {
+            snackbarHostState.showSnackbar("Producto agregado al carrito")
+            viewModel.consumeAddedToCartFlag()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             BottomAppBar(containerColor = TopBarAndDrawerColor) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -60,7 +69,7 @@ fun ProductDetailScreen(
                     )
                 }
                 Button(
-                    onClick = { /* TODO: agregar a carrito */ },
+                    onClick = { viewModel.addCurrentSelectionToCart() },
                     modifier = Modifier
                         .weight(1.5f)
                         .height(50.dp),

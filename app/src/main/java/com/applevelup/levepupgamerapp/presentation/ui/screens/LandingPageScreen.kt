@@ -34,7 +34,15 @@ fun LandingPageScreen(
         drawerContent = {
             DrawerContent(
                 navController = navController,
-                onClose = { scope.launch { drawerState.close() } }
+                onClose = { scope.launch { drawerState.close() } },
+                onLogout = {
+                    scope.launch {
+                        viewModel.logout()
+                        navController.navigate("login") {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        }
+                    }
+                }
             )
         }
     ) {
@@ -66,7 +74,7 @@ fun LandingPageScreen(
 }
 
 @Composable
-fun DrawerContent(navController: NavController, onClose: () -> Unit) {
+fun DrawerContent(navController: NavController, onClose: () -> Unit, onLogout: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -93,7 +101,7 @@ fun DrawerContent(navController: NavController, onClose: () -> Unit) {
             onClose()
         }
         DrawerItem("Cerrar Sesión") {
-            navController.navigate("login")
+            onLogout()
             onClose()
         }
     }

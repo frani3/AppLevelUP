@@ -3,8 +3,10 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.repository.CartRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.CartItem
 import com.applevelup.levepupgamerapp.domain.repository.CartRepository
+import com.applevelup.levepupgamerapp.domain.repository.SessionRepository
 import com.applevelup.levepupgamerapp.domain.usecase.ClearCartUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.GetCartUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.RemoveCartItemUseCase
@@ -24,10 +26,11 @@ data class CartUiState(
 
 class CartViewModel(
     private val repository: CartRepository = CartRepositoryImpl(),
-    private val getCartUseCase: GetCartUseCase = GetCartUseCase(repository),
-    private val updateQuantityUseCase: UpdateCartItemQuantityUseCase = UpdateCartItemQuantityUseCase(repository),
-    private val removeItemUseCase: RemoveCartItemUseCase = RemoveCartItemUseCase(repository),
-    private val clearCartUseCase: ClearCartUseCase = ClearCartUseCase(repository)
+    private val sessionRepository: SessionRepository = SessionRepositoryImpl(),
+    private val getCartUseCase: GetCartUseCase = GetCartUseCase(repository, sessionRepository),
+    private val updateQuantityUseCase: UpdateCartItemQuantityUseCase = UpdateCartItemQuantityUseCase(repository, sessionRepository),
+    private val removeItemUseCase: RemoveCartItemUseCase = RemoveCartItemUseCase(repository, sessionRepository),
+    private val clearCartUseCase: ClearCartUseCase = ClearCartUseCase(repository, sessionRepository)
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CartUiState())

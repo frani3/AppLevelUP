@@ -7,7 +7,9 @@ import com.applevelup.levepupgamerapp.domain.model.Order
 import com.applevelup.levepupgamerapp.domain.model.UserProfile
 import com.applevelup.levepupgamerapp.domain.usecase.GetUserProfileUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -24,6 +26,9 @@ class UserViewModel(
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState
 
+    private val _logoutEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val logoutEvents = _logoutEvents.asSharedFlow()
+
     init {
         loadUserData()
     }
@@ -39,6 +44,7 @@ class UserViewModel(
     fun logout() {
         viewModelScope.launch {
             useCase.logout()
+            _logoutEvents.emit(Unit)
         }
     }
 }

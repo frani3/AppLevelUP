@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
 import com.applevelup.levepupgamerapp.presentation.viewmodel.*
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,12 +27,22 @@ fun ProductListScreen(
     viewModel: ProductListViewModel = viewModel(factory = ProductListViewModelFactory())
 ) {
     val state by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(categoryName) {
         viewModel.loadProducts(categoryName)
     }
 
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            if (event is ProductListEvent.ItemAdded) {
+                snackbarHostState.showSnackbar("Producto agregado al carrito")
+            }
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(categoryName, fontWeight = FontWeight.Bold) },
@@ -69,7 +80,7 @@ fun ProductListScreen(
                 items(state.products, key = { it.id }) { product ->
                     ProductListItem(
                         product = product,
-                        onAddToCart = { /* TODO: conectar con carrito */ },
+                        onAddToCart = { viewModel.addProductToCart(product.id) },
                         navController = navController
                     )
                 }

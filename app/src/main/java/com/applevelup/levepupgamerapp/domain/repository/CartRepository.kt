@@ -4,9 +4,9 @@ import com.applevelup.levepupgamerapp.domain.model.CartItem
 import kotlinx.coroutines.flow.Flow
 
 interface CartRepository {
-    fun observeCartItems(): Flow<List<CartItem>>
-    suspend fun addProduct(productId: Int, quantity: Int = 1)
-    suspend fun updateQuantity(productId: Int, quantity: Int)
-    suspend fun removeItem(productId: Int)
-    suspend fun clearCart()
+    fun observeCartItems(userId: Long): Flow<List<CartItem>>
+    suspend fun addProduct(userId: Long, productId: Int, quantity: Int = 1)
+    suspend fun updateQuantity(userId: Long, productId: Int, quantity: Int)
+    suspend fun removeItem(userId: Long, productId: Int)
+    suspend fun clearCart(userId: Long)
 }

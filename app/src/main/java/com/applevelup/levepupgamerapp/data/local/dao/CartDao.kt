@@ -15,23 +15,23 @@ import kotlinx.coroutines.flow.Flow
 interface CartDao {
 
 	@Transaction
-	@Query("SELECT * FROM cart_items")
-	fun observeCartItems(): Flow<List<CartItemWithProduct>>
+	@Query("SELECT * FROM cart_items WHERE user_id = :userId")
+	fun observeCartItems(userId: Long): Flow<List<CartItemWithProduct>>
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	suspend fun upsert(cartItem: CartItemEntity)
 
-	@Query("UPDATE cart_items SET quantity = :quantity WHERE product_id = :productId")
-	suspend fun updateQuantity(productId: Int, quantity: Int)
+	@Query("UPDATE cart_items SET quantity = :quantity WHERE user_id = :userId AND product_id = :productId")
+	suspend fun updateQuantity(userId: Long, productId: Int, quantity: Int)
 
-	@Query("DELETE FROM cart_items WHERE product_id = :productId")
-	suspend fun deleteByProductId(productId: Int)
+	@Query("DELETE FROM cart_items WHERE user_id = :userId AND product_id = :productId")
+	suspend fun deleteByProductId(userId: Long, productId: Int)
 
-	@Query("DELETE FROM cart_items")
-	suspend fun clear()
+	@Query("DELETE FROM cart_items WHERE user_id = :userId")
+	suspend fun clear(userId: Long)
 
-	@Query("SELECT * FROM cart_items WHERE product_id = :productId LIMIT 1")
-	suspend fun getByProductId(productId: Int): CartItemEntity?
+	@Query("SELECT * FROM cart_items WHERE user_id = :userId AND product_id = :productId LIMIT 1")
+	suspend fun getByProductId(userId: Long, productId: Int): CartItemEntity?
 }
 
 data class CartItemWithProduct(

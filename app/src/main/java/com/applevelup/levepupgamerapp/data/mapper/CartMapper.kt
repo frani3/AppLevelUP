@@ -16,8 +16,9 @@ object CartMapper {
 		)
 	}
 
-	fun toEntity(cartItem: CartItem): CartItemEntity {
+	fun toEntity(cartItem: CartItem, userId: Long): CartItemEntity {
 		return CartItemEntity(
+			userId = userId,
 			productId = cartItem.id,
 			quantity = cartItem.quantity
 		)
