@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
@@ -25,6 +27,7 @@ import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.LandingViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.statusBars
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +42,10 @@ fun LandingPageScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var isSearchVisible by rememberSaveable { mutableStateOf(false) }
+    val isDrawerOpen = drawerState.isOpen
+    val density = LocalDensity.current
+    val statusBarPadding = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
+    val drawerTopPadding = statusBarPadding + 64.dp
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -53,7 +60,8 @@ fun LandingPageScreen(
                             popUpTo(navController.graph.startDestinationId) { inclusive = true }
                         }
                     }
-                }
+                },
+                topPadding = drawerTopPadding
             )
         },
         scrimColor = Color.Black.copy(alpha = 0.2f),
@@ -64,7 +72,16 @@ fun LandingPageScreen(
                 topBar = {
                     LandingPageTopBar(
                         navController = navController,
-                        onMenuClick = { scope.launch { drawerState.open() } },
+                        isDrawerOpen = isDrawerOpen,
+                        onDrawerToggle = {
+                            scope.launch {
+                                if (drawerState.isOpen) {
+                                    drawerState.close()
+                                } else {
+                                    drawerState.open()
+                                }
+                            }
+                        },
                         isSearchVisible = isSearchVisible,
                         onSearchVisibilityChange = { isSearchVisible = it },
                         cartCount = cartCount,
@@ -111,9 +128,11 @@ fun LandingPageScreen(
 }
 
 @Composable
-fun DrawerContent(navController: NavController, onClose: () -> Unit, onLogout: () -> Unit) {
+fun DrawerContent(navController: NavController, onClose: () -> Unit, onLogout: () -> Unit, topPadding: Dp) {
     ModalDrawerSheet(
-        modifier = Modifier.widthIn(max = 320.dp),
+        modifier = Modifier
+            .widthIn(max = 320.dp)
+            .padding(top = topPadding),
         drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp),
         windowInsets = WindowInsets(0, 0, 0, 0),
         drawerTonalElevation = 8.dp,

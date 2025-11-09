@@ -76,7 +76,8 @@ fun CartActionButton(
 @Composable
 fun LandingPageTopBar(
     navController: NavController,
-    onMenuClick: () -> Unit,
+    isDrawerOpen: Boolean,
+    onDrawerToggle: () -> Unit,
     isSearchVisible: Boolean,
     onSearchVisibilityChange: (Boolean) -> Unit,
     cartCount: Int,
@@ -111,8 +112,10 @@ fun LandingPageTopBar(
         CenterAlignedTopAppBar(
             title = { Text("LevelUp Store", fontWeight = FontWeight.Bold, color = Color.White) },
             navigationIcon = {
-                IconButton(onClick = onMenuClick) {
-                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                IconButton(onClick = onDrawerToggle) {
+                    val icon = if (isDrawerOpen) Icons.Default.Close else Icons.Default.Menu
+                    val description = if (isDrawerOpen) "Cerrar menú" else "Abrir menú"
+                    Icon(icon, contentDescription = description, tint = Color.White)
                 }
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

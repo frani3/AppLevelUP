@@ -1,72 +1,164 @@
 package com.applevelup.levepupgamerapp.presentation.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.applevelup.levepupgamerapp.presentation.ui.screens.*
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavGraph(modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
 
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
         startDestination = Destinations.Splash.route,
         modifier = modifier
     ) {
         // Auth
-        composable(Destinations.Splash.route) { SplashScreen(navController) }
-        composable(Destinations.Login.route) { LoginScreen(navController) }
-        composable(Destinations.Register.route) { RegistroScreen(navController) }
+        composable(
+            route = Destinations.Splash.route,
+            enterTransition = { fadeIn(animationSpec = tween(durationMillis = 400)) },
+            exitTransition = { fadeOut(animationSpec = tween(durationMillis = 280)) }
+        ) { SplashScreen(navController) }
+        composable(
+            route = Destinations.Login.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { LoginScreen(navController) }
+        composable(
+            route = Destinations.Register.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { RegistroScreen(navController) }
 
         // Home / catálogo
-        composable(Destinations.Landing.route) { LandingPageScreen(navController) }
-        composable(Destinations.Categories.route) { CategoryScreen(navController) }
+        composable(
+            route = Destinations.Landing.route,
+            enterTransition = { fadeIn(animationSpec = tween(durationMillis = 320)) },
+            exitTransition = { fadeOut(animationSpec = tween(durationMillis = 220)) }
+        ) { LandingPageScreen(navController) }
+        composable(
+            route = Destinations.Categories.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { CategoryScreen(navController) }
         composable(
             route = "${Destinations.Search.route}?query={query}",
             arguments = listOf(navArgument("query") {
                 type = NavType.StringType
                 defaultValue = ""
                 nullable = true
-            })
+            }),
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
         ) { backStack ->
             val initialQuery = backStack.arguments?.getString("query").orEmpty()
             SearchScreen(navController, initialQuery)
         }
 
-        composable(Destinations.ProductList.route) { backStack ->
+        composable(
+            route = Destinations.ProductList.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { backStack ->
             val category = backStack.arguments?.getString("categoryName") ?: "Categoría"
             ProductListScreen(navController, category)
         }
 
         composable(
             route = Destinations.ProductDetail.route,
-            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+            arguments = listOf(navArgument("productId") { type = NavType.IntType }),
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
         ) { backStack ->
             val id = backStack.arguments?.getInt("productId") ?: 0
             ProductDetailScreen(navController, id)
         }
 
         // Usuario
-        composable(Destinations.Profile.route) { ProfileScreen(navController) }
-        composable(Destinations.Account.route) { AccountScreen(navController) }
-        composable(Destinations.Notifications.route) { NotificationsScreen(navController) }
-    composable(Destinations.EditProfile.route) { EditProfileScreen(navController) }
+        composable(
+            route = Destinations.Profile.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { ProfileScreen(navController) }
+        composable(
+            route = Destinations.Account.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { AccountScreen(navController) }
+        composable(
+            route = Destinations.Notifications.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { NotificationsScreen(navController) }
+        composable(
+            route = Destinations.EditProfile.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { EditProfileScreen(navController) }
 
         // Carrito
-        composable(Destinations.Cart.route) { CartScreen(navController) }
-        composable(Destinations.Checkout.route) { CheckoutScreen(navController) }
+        composable(
+            route = Destinations.Cart.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { CartScreen(navController) }
+        composable(
+            route = Destinations.Checkout.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { CheckoutScreen(navController) }
 
         composable(
             route = Destinations.OrderSuccess.route,
             arguments = listOf(
                 navArgument("orderId") { type = NavType.StringType },
                 navArgument("total") { type = NavType.IntType }
-            )
+            ),
+            enterTransition = { modalEnter() },
+            exitTransition = { modalExit() },
+            popEnterTransition = { modalEnter(reverse = true) },
+            popExitTransition = { modalExit(reverse = true) }
         ) { backStack ->
             val orderId = backStack.arguments?.getString("orderId").orEmpty()
             val total = backStack.arguments?.getInt("total") ?: 0
@@ -74,11 +166,75 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         }
 
         // Pagos
-        composable(Destinations.PaymentMethods.route) { PaymentMethodsScreen(navController) }
-        composable(Destinations.AddPaymentMethod.route) { AddPaymentMethodScreen(navController) }
+        composable(
+            route = Destinations.PaymentMethods.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { PaymentMethodsScreen(navController) }
+        composable(
+            route = Destinations.AddPaymentMethod.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { AddPaymentMethodScreen(navController) }
 
         // Direcciones
-        composable(Destinations.Addresses.route) { AddressScreen(navController) }
-        composable(Destinations.AddAddress.route) { AddAddressScreen(navController) }
+        composable(
+            route = Destinations.Addresses.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { AddressScreen(navController) }
+        composable(
+            route = Destinations.AddAddress.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { AddAddressScreen(navController) }
     }
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.forwardEnter(): EnterTransition =
+    slideIntoContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+        animationSpec = tween(durationMillis = 320, easing = FastOutSlowInEasing)
+    ) + fadeIn(animationSpec = tween(durationMillis = 200, delayMillis = 60))
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.forwardExit(): ExitTransition =
+    slideOutOfContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+    ) + fadeOut(animationSpec = tween(durationMillis = 200))
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.backwardEnter(): EnterTransition =
+    slideIntoContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+    ) + fadeIn(animationSpec = tween(durationMillis = 200, delayMillis = 40))
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.backwardExit(): ExitTransition =
+    slideOutOfContainer(
+        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing)
+    ) + fadeOut(animationSpec = tween(durationMillis = 180))
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.modalEnter(reverse: Boolean = false): EnterTransition {
+    val direction = if (reverse) 1 else -1
+    return slideInVertically(
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing)
+    ) { fullHeight -> direction * (fullHeight / 3) } +
+        fadeIn(animationSpec = tween(durationMillis = 220, delayMillis = 30))
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.modalExit(reverse: Boolean = false): ExitTransition {
+    val direction = if (reverse) 1 else -1
+    return slideOutVertically(
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+    ) { fullHeight -> direction * (fullHeight / 3) } +
+        fadeOut(animationSpec = tween(durationMillis = 180))
 }
