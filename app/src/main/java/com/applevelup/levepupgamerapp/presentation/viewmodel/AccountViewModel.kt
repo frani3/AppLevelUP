@@ -3,6 +3,7 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.repository.UserRepositoryImpl
+import com.applevelup.levepupgamerapp.domain.usecase.GetUserProfileUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.UpdateAccountUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.ValidateAccountFormUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,10 +26,25 @@ class AccountViewModel(
 ) : ViewModel() {
 
     private val updateUseCase = UpdateAccountUseCase(repo)
+    private val getProfileUseCase = GetUserProfileUseCase(repo)
     private val validateUseCase = ValidateAccountFormUseCase()
 
-    private val _uiState = MutableStateFlow(AccountUiState(fullName = "FranI3", email = "frani3@email.com"))
+    private val _uiState = MutableStateFlow(AccountUiState())
     val uiState: StateFlow<AccountUiState> = _uiState
+
+    init {
+        loadAccountData()
+    }
+
+    private fun loadAccountData() {
+        viewModelScope.launch {
+            getProfileUseCase.getUserProfile()?.let { profile ->
+                _uiState.update {
+                    it.copy(fullName = profile.name, email = profile.email)
+                }
+            }
+        }
+    }
 
     fun onFullNameChange(value: String) = _uiState.update { it.copy(fullName = value) }
     fun onEmailChange(value: String) = _uiState.update { it.copy(email = value) }
@@ -50,6 +66,7 @@ class AccountViewModel(
             viewModelScope.launch {
                 updateUseCase(s.fullName, s.email, if (s.newPassword.isNotBlank()) s.newPassword else null)
                 _uiState.update { it.copy(successMessage = "Cambios guardados correctamente") }
+                loadAccountData()
             }
         } else {
             _uiState.update { it.copy(errors = map, successMessage = null) }

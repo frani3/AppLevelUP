@@ -2,14 +2,31 @@ package com.applevelup.levepupgamerapp.presentation.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +41,7 @@ import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.CartItem
 import com.applevelup.levepupgamerapp.presentation.ui.theme.CardBackgroundColor
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
+import com.applevelup.levepupgamerapp.utils.PriceUtils
 
 @Composable
 fun CartItemCard(
@@ -56,7 +74,7 @@ fun CartItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.name, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp)
                 Spacer(Modifier.height(4.dp))
-                Text("$${"%.2f".format(item.price)}", color = PrimaryPurple, fontWeight = FontWeight.SemiBold)
+                Text(PriceUtils.formatPriceCLP(item.price), color = PrimaryPurple, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -107,7 +125,7 @@ fun SummaryRow(label: String, value: Double, isTotal: Boolean = false) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, color = color, fontSize = fontSize, fontWeight = fontWeight)
-        Text("$${"%.2f".format(value)}", color = color, fontSize = fontSize, fontWeight = fontWeight)
+        Text(PriceUtils.formatPriceCLP(value), color = color, fontSize = fontSize, fontWeight = fontWeight)
     }
 }
 @Composable

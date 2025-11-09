@@ -1,41 +1,32 @@
 package com.applevelup.levepupgamerapp.data.repository
 
-import com.applevelup.levepupgamerapp.R
+import com.applevelup.levepupgamerapp.LevelUpApplication
+import com.applevelup.levepupgamerapp.data.local.dao.ProductDao
+import com.applevelup.levepupgamerapp.data.mapper.ProductMapper
 import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.domain.repository.ProductRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class ProductRepositoryImpl : ProductRepository {
+class ProductRepositoryImpl(
+    private val productDao: ProductDao = LevelUpApplication.database.productDao()
+) : ProductRepository {
 
-    private val allProducts = mapOf(
-        "Juegos de Mesa" to listOf(
-            Product(101, "Catan - El Juego", 49.99, 59.99, 4.8f, 1345, R.drawable.catan_product),
-            Product(102, "Carcassonne - Edición Plus", 39.99, null, 4.7f, 987, R.drawable.carcassonne_product)
-        ),
-        "Accesorios" to listOf(
-            Product(201, "Headset 7.1 Surround", 89.99, null, 4.6f, 854, R.drawable.audifonos_product)
-        ),
-        "Consolas" to listOf(
-            Product(301, "PlayStation 5", 549.99, null, 4.9f, 3012, R.drawable.p5_product)
-        ),
-        "Computadores Gamers" to listOf(
-            Product(401, "Notebook Gamer Asus", 1249.99, 1499.99, 4.8f, 451, R.drawable.pc_product)
-        ),
-        "Sillas Gamers" to listOf(
-            Product(501, "Silla Gamer Ergonómica", 199.99, null, 4.7f, 1123, R.drawable.silla_product)
-        ),
-        "Mouse" to listOf(
-            Product(601, "Mouse Logitech G502 HERO", 64.99, 79.99, 4.9f, 2054, R.drawable.mouse_product)
-        ),
-        "Mousepad" to listOf(
-            Product(701, "Mousepad XXL", 29.99, null, 4.8f, 1500, R.drawable.mousepad_product)
-        ),
-        "Poleras Personalizadas" to emptyList(),
-        "Polerones Gamers Personalizados" to emptyList()
-    )
+    override fun observeProducts(): Flow<List<Product>> {
+        return productDao.observeProducts().map { list ->
+            list.map(ProductMapper::toDomain)
+        }
+    }
 
-    override fun getProductsByCategory(categoryName: String): List<Product> {
-        return allProducts.entries.firstOrNull {
-            it.key.equals(categoryName, ignoreCase = true)
-        }?.value ?: emptyList()
+    override suspend fun getProductsByCategory(categoryName: String): List<Product> {
+        return productDao.getProductsByCategory(categoryName).map(ProductMapper::toDomain)
+    }
+
+    override suspend fun getProductById(id: Int): Product? {
+        return productDao.getProductById(id)?.let(ProductMapper::toDomain)
+    }
+
+    override suspend fun searchProducts(query: String): List<Product> {
+        return productDao.searchProducts(query).map(ProductMapper::toDomain)
     }
 }

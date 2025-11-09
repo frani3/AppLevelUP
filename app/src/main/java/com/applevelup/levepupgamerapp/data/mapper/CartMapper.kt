@@ -1,4 +1,25 @@
 package com.applevelup.levepupgamerapp.data.mapper
 
-class CartMapper {
+import com.applevelup.levepupgamerapp.data.local.dao.CartItemWithProduct
+import com.applevelup.levepupgamerapp.data.local.entity.CartItemEntity
+import com.applevelup.levepupgamerapp.domain.model.CartItem
+
+object CartMapper {
+
+	fun toDomain(relation: CartItemWithProduct): CartItem {
+		return CartItem(
+			id = relation.product.id,
+			name = relation.product.name,
+			price = relation.product.price,
+			imageRes = relation.product.imageRes,
+			quantity = relation.cart.quantity
+		)
+	}
+
+	fun toEntity(cartItem: CartItem): CartItemEntity {
+		return CartItemEntity(
+			productId = cartItem.id,
+			quantity = cartItem.quantity
+		)
+	}
 }

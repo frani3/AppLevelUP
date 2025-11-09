@@ -72,7 +72,7 @@ fun ProductListItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 17.sp, maxLines = 2)
                 Spacer(modifier = Modifier.height(6.dp))
-                RatingBar(rating = product.rating, reviewCount = product.reviewCount)
+                RatingBar(rating = product.rating, reviewCount = product.reviews)
                 Spacer(modifier = Modifier.height(8.dp))
                 Price(price = product.price, oldPrice = product.oldPrice)
             }

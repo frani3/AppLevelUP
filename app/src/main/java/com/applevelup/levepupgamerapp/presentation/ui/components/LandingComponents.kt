@@ -2,6 +2,7 @@ package com.applevelup.levepupgamerapp.presentation.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -141,7 +142,10 @@ fun CategoryChips(categories: List<Category>) {
 
 // 🔹 Carrusel horizontal de productos
 @Composable
-fun ProductShowcaseRow(products: List<ProductSummary>) {
+fun ProductShowcaseRow(
+    products: List<ProductSummary>,
+    navController: NavController
+) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,7 +157,10 @@ fun ProductShowcaseRow(products: List<ProductSummary>) {
             Card(
                 modifier = Modifier
                     .width(150.dp)
-                    .height(210.dp),
+                    .height(210.dp)
+                    .clickable {
+                        navController.navigate("product_detail/${product.id}")
+                    },
                 colors = CardDefaults.cardColors(containerColor = Color.DarkGray.copy(alpha = 0.3f))
             ) {
                 Column(

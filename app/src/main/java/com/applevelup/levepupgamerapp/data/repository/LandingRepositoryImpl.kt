@@ -21,16 +21,52 @@ class LandingRepositoryImpl : LandingRepository {
     )
 
     override fun getFeaturedProducts() = listOf(
-        ProductSummary("Teclado Mecánico RGB", "$99.990", R.drawable.teclado_product),
-        ProductSummary("Mouse Gamer Inalámbrico", "$64.990", R.drawable.mouse_product),
-        ProductSummary("Silla Gamer Ergonómica", "$199.990", R.drawable.silla_product),
-        ProductSummary("Notebook Gamer Asus", "$249.990", R.drawable.pc_product)
+        ProductSummary(
+            id = 1,
+            name = "Teclado Mecánico RGB",
+            price = "$99.990",
+            imageRes = R.drawable.teclado_product
+        ),
+        ProductSummary(
+            id = 2,
+            name = "Mouse Gamer Inalámbrico",
+            price = "$64.990",
+            imageRes = R.drawable.mouse_product
+        ),
+        ProductSummary(
+            id = 3,
+            name = "Silla Gamer Ergonómica",
+            price = "$199.990",
+            imageRes = R.drawable.silla_product
+        ),
+        ProductSummary(
+            id = 4,
+            name = "Notebook Gamer Asus",
+            price = "$249.990",
+            imageRes = R.drawable.pc_product
+        )
     )
 
+
     override fun getNewProducts() = listOf(
-        ProductSummary("Headset 7.1 Surround", "$89.990", R.drawable.audifonos_product),
-        ProductSummary("Mousepad XXL", "$29.990", R.drawable.mousepad_product),
-        ProductSummary("Polerón LevelUp", "$149.990", R.drawable.poleron_product),
-        ProductSummary("Micrófono Condensador", "$119.990", R.drawable.polera_product)
+        ProductSummary(
+            id = 5,
+            name = "Headset 7.1 Surround",
+            price = "$89.990",
+            imageRes = R.drawable.audifonos_product
+        ),
+        ProductSummary(
+            id = 6,
+            name = "Mousepad XXL",
+            price = "$29.990",
+            imageRes = R.drawable.mousepad_product
+        ),
+        ProductSummary(
+            id = 7,
+            name = "Polerón LevelUp",
+            price = "$14.990",
+            imageRes = R.drawable.poleron_product
+        )
     )
+
 }

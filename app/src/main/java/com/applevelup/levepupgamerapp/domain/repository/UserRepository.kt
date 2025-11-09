@@ -2,11 +2,12 @@ package com.applevelup.levepupgamerapp.domain.repository
 
 import com.applevelup.levepupgamerapp.domain.model.Order
 import com.applevelup.levepupgamerapp.domain.model.UserProfile
+import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
-    fun getUserProfile(): UserProfile
-    fun getUserOrders(): List<Order>
-    fun logout()
-    fun updateUser(fullName: String, email: String, newPassword: String?)
-
+    fun observeUserProfile(): Flow<UserProfile?>
+    suspend fun getUserProfile(): UserProfile?
+    suspend fun getUserOrders(): List<Order>
+    suspend fun logout()
+    suspend fun updateUser(fullName: String, email: String, newPassword: String?)
 }

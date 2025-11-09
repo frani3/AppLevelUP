@@ -56,9 +56,10 @@ fun LandingPageScreen(
                 item { SectionTitle("Categorías Populares") }
                 item { CategoryChips(state.categories) }
                 item { SectionTitle("Productos Destacados") }
-                item { ProductShowcaseRow(state.featured) }
                 item { SectionTitle("Nuevos Lanzamientos") }
-                item { ProductShowcaseRow(state.newProducts) }
+                item { ProductShowcaseRow(state.featured, navController) }
+                item { ProductShowcaseRow(state.newProducts, navController) }
+
             }
         }
     }

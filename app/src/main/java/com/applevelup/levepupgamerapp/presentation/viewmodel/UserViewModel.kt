@@ -37,6 +37,8 @@ class UserViewModel(
     }
 
     fun logout() {
-        useCase.logout()
+        viewModelScope.launch {
+            useCase.logout()
+        }
     }
 }

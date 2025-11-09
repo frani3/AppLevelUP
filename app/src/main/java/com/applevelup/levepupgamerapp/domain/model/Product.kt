@@ -5,7 +5,7 @@ data class Product(
     val name: String,
     val price: Double,
     val oldPrice: Double? = null,
-    val rating: Float = 0f,
-    val reviewCount: Int = 0,
+    val rating: Float,
+    val reviews: Int = 0,
     val imageRes: Int
 )

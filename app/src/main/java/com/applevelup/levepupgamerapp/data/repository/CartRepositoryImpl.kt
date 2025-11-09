@@ -1,34 +1,54 @@
 package com.applevelup.levepupgamerapp.data.repository
 
-import com.applevelup.levepupgamerapp.R
+import com.applevelup.levepupgamerapp.LevelUpApplication
+import com.applevelup.levepupgamerapp.data.local.dao.CartDao
+import com.applevelup.levepupgamerapp.data.local.dao.ProductDao
+import com.applevelup.levepupgamerapp.data.local.entity.CartItemEntity
+import com.applevelup.levepupgamerapp.data.mapper.CartMapper
 import com.applevelup.levepupgamerapp.domain.model.CartItem
 import com.applevelup.levepupgamerapp.domain.repository.CartRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class CartRepositoryImpl : CartRepository {
+class CartRepositoryImpl(
+    private val cartDao: CartDao = LevelUpApplication.database.cartDao(),
+    private val productDao: ProductDao = LevelUpApplication.database.productDao()
+) : CartRepository {
 
-    private val cartItems = mutableListOf(
-        CartItem(1, "Teclado Mecánico RGB", 99.99, R.drawable.teclado_product, 1),
-        CartItem(2, "Mouse Gamer Inalámbrico", 64.99, R.drawable.mouse_product, 2)
-    )
-
-    override fun getCartItems(): List<CartItem> = cartItems.toList()
-
-    override fun addItem(item: CartItem) {
-        cartItems.add(item)
-    }
-
-    override fun updateQuantity(itemId: Int, quantity: Int) {
-        val index = cartItems.indexOfFirst { it.id == itemId }
-        if (index != -1) {
-            cartItems[index] = cartItems[index].copy(quantity = quantity)
+    override fun observeCartItems(): Flow<List<CartItem>> {
+        return cartDao.observeCartItems().map { relations ->
+            relations.map(CartMapper::toDomain)
         }
     }
 
-    override fun removeItem(itemId: Int) {
-        cartItems.removeAll { it.id == itemId }
+    override suspend fun addProduct(productId: Int, quantity: Int) {
+        productDao.getProductById(productId)
+            ?: throw IllegalArgumentException("Producto inexistente con id=$productId")
+
+        val current = cartDao.getByProductId(productId)
+        val newQuantity = (current?.quantity ?: 0) + quantity
+        cartDao.upsert(CartItemEntity(productId = productId, quantity = newQuantity))
     }
 
-    override fun clearCart() {
-        cartItems.clear()
+    override suspend fun updateQuantity(productId: Int, quantity: Int) {
+        if (quantity <= 0) {
+            cartDao.deleteByProductId(productId)
+            return
+        }
+
+        val current = cartDao.getByProductId(productId)
+        if (current == null) {
+            cartDao.upsert(CartItemEntity(productId = productId, quantity = quantity))
+        } else {
+            cartDao.updateQuantity(productId, quantity)
+        }
+    }
+
+    override suspend fun removeItem(productId: Int) {
+        cartDao.deleteByProductId(productId)
+    }
+
+    override suspend fun clearCart() {
+        cartDao.clear()
     }
 }
