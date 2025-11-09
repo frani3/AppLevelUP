@@ -5,14 +5,18 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,6 +30,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,6 +46,7 @@ import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.CartItem
 import com.applevelup.levepupgamerapp.presentation.ui.theme.CardBackgroundColor
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
+import com.applevelup.levepupgamerapp.presentation.ui.theme.TopBarAndDrawerColor
 import com.applevelup.levepupgamerapp.utils.PriceUtils
 
 @Composable
@@ -100,16 +106,22 @@ fun CartItemCard(
 }
 
 @Composable
-fun SummarySection(subtotal: Double, shippingCost: Double, total: Double) {
+fun SummarySection(
+    subtotal: Double,
+    shippingCost: Double,
+    total: Double,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(16.dp)
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(contentPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SummaryRow("Subtotal", subtotal)
         SummaryRow("Envío", shippingCost)
-    HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
+        HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f))
         SummaryRow("Total", total, isTotal = true)
     }
 }
@@ -129,9 +141,50 @@ fun SummaryRow(label: String, value: Double, isTotal: Boolean = false) {
     }
 }
 @Composable
-fun EmptyCartView(navController: NavController) {
+fun CartBottomBar(
+    subtotal: Double,
+    shippingCost: Double,
+    total: Double,
+    onCheckout: () -> Unit
+) {
+    Surface(
+        color = TopBarAndDrawerColor,
+        shadowElevation = 12.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SummarySection(
+                subtotal = subtotal,
+                shippingCost = shippingCost,
+                total = total,
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp)
+            )
+            Button(
+                onClick = onCheckout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPurple)
+            ) {
+                Icon(Icons.Default.ShoppingCartCheckout, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Proceder al Pago", fontSize = 18.sp, color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyCartView(navController: NavController, modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
