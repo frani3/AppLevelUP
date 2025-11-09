@@ -1,16 +1,25 @@
 package com.applevelup.levepupgamerapp.data.repository
 
+import com.applevelup.levepupgamerapp.LevelUpApplication
+import com.applevelup.levepupgamerapp.data.prefs.NotificationPreferencesDataSource
 import com.applevelup.levepupgamerapp.domain.model.NotificationSettings
 import com.applevelup.levepupgamerapp.domain.repository.NotificationPreferencesRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
-class NotificationPreferencesRepositoryImpl : NotificationPreferencesRepository {
+class NotificationPreferencesRepositoryImpl(
+    private val prefs: NotificationPreferencesDataSource = LevelUpApplication.notificationPreferences
+) : NotificationPreferencesRepository {
 
-    // Temporal: una versión final usar DataStore
-    private var currentSettings = NotificationSettings()
+    override fun observeSettings(): Flow<NotificationSettings> = prefs.settingsFlow
 
-    override fun getSettings(): NotificationSettings = currentSettings
+    override suspend fun getSettings(): NotificationSettings = prefs.settingsFlow.first()
 
-    override fun saveSettings(settings: NotificationSettings) {
-        currentSettings = settings
+    override suspend fun saveSettings(settings: NotificationSettings) {
+        prefs.save(settings)
+    }
+
+    override suspend fun updateSettings(transform: (NotificationSettings) -> NotificationSettings) {
+        prefs.update(transform)
     }
 }

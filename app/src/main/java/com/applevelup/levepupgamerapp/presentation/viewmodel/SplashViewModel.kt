@@ -3,6 +3,7 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
+import com.applevelup.levepupgamerapp.domain.usecase.GetSessionUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,13 +20,16 @@ class SplashViewModel(
     private val sessionRepo: SessionRepositoryImpl = SessionRepositoryImpl()
 ) : ViewModel() {
 
+    private val getSessionUseCase = GetSessionUseCase(sessionRepo)
+
     private val _uiState = MutableStateFlow(SplashUiState())
     val uiState: StateFlow<SplashUiState> = _uiState
 
     init {
         viewModelScope.launch {
             delay(2000) // animación / logo
-            val dest = if (sessionRepo.isLoggedIn()) SplashDestination.HOME else SplashDestination.LOGIN
+            val session = getSessionUseCase()
+            val dest = if (session.isLoggedIn) SplashDestination.HOME else SplashDestination.LOGIN
             _uiState.update { it.copy(destination = dest) }
         }
     }
