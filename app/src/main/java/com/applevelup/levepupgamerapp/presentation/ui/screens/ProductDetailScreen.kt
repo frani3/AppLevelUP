@@ -3,7 +3,6 @@ package com.applevelup.levepupgamerapp.presentation.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
+import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,6 +27,9 @@ fun ProductDetailScreen(
     viewModel: ProductDetailViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val cartViewModel: CartViewModel = viewModel()
+    val cartState by cartViewModel.uiState.collectAsState()
+    val cartCount = cartState.items.sumOf { it.quantity }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(productId) {
@@ -57,12 +60,20 @@ fun ProductDetailScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            ProductDetailTopBar(
+                title = product.name,
+                cartCount = cartCount,
+                onBackClick = { navController.popBackStack() },
+                onCartClick = { navController.navigate("carrito") }
+            )
+        },
         bottomBar = {
             BottomAppBar(containerColor = TopBarAndDrawerColor) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Total", color = Color.Gray, fontSize = 14.sp)
                     Text(
-                        "$${"%.2f".format(state.totalPrice)}",
+                        formatAsChileanPeso(state.totalPrice),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -87,7 +98,7 @@ fun ProductDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = paddingValues.calculateBottomPadding())
+                .padding(paddingValues)
         ) {
             item { ProductImageCarousel(product = product) }
             item {

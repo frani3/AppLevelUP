@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
@@ -27,6 +28,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
+import com.applevelup.levepupgamerapp.presentation.ui.theme.TopBarAndDrawerColor
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
+import kotlin.math.roundToLong
+
+private val chileanLocale: Locale = Locale.Builder()
+    .setLanguage("es")
+    .setRegion("CL")
+    .build()
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductDetailTopBar(
+    title: String,
+    cartCount: Int,
+    onBackClick: () -> Unit,
+    onCartClick: () -> Unit
+) {
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color.White
+                )
+            }
+        },
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            containerColor = TopBarAndDrawerColor,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White
+        ),
+        actions = {
+            CartActionButton(count = cartCount, onClick = onCartClick)
+        }
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -104,16 +152,18 @@ fun DetailPrice(price: Double, oldPrice: Double?) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
+        val currentPrice = formatAsChileanPeso(price)
         Text(
-            text = "$${"%.2f".format(price)}",
+            text = currentPrice,
             fontWeight = FontWeight.Bold,
             color = PrimaryPurple,
             fontSize = 24.sp
         )
         if (oldPrice != null) {
+            val previousPrice = formatAsChileanPeso(oldPrice)
             Spacer(Modifier.width(8.dp))
             Text(
-                text = "$${"%.2f".format(oldPrice)}",
+                text = previousPrice,
                 color = Color.Gray,
                 textDecoration = TextDecoration.LineThrough
             )
@@ -137,6 +187,16 @@ fun DetailQuantityControl(quantity: Int, onIncrease: () -> Unit, onDecrease: () 
             Text("+", color = Color.White, fontSize = 20.sp, modifier = Modifier.padding(horizontal = 8.dp))
         }
     }
+}
+
+fun formatAsChileanPeso(amount: Double): String {
+    val symbols = DecimalFormatSymbols(chileanLocale).apply {
+        groupingSeparator = '.'
+        decimalSeparator = ','
+    }
+    val formatter = DecimalFormat("#,###", symbols)
+    val roundedAmount = amount.roundToLong()
+    return "$${formatter.format(roundedAmount)}"
 }
 
 @Composable

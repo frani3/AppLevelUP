@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
+import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.LandingViewModel
 import kotlinx.coroutines.launch
 
@@ -32,6 +33,9 @@ fun LandingPageScreen(
     viewModel: LandingViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val cartViewModel: CartViewModel = viewModel()
+    val cartState by cartViewModel.uiState.collectAsState()
+    val cartCount = cartState.items.sumOf { it.quantity }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var isSearchVisible by rememberSaveable { mutableStateOf(false) }
@@ -62,7 +66,9 @@ fun LandingPageScreen(
                         navController = navController,
                         onMenuClick = { scope.launch { drawerState.open() } },
                         isSearchVisible = isSearchVisible,
-                        onSearchVisibilityChange = { isSearchVisible = it }
+                        onSearchVisibilityChange = { isSearchVisible = it },
+                        cartCount = cartCount,
+                        onCartClick = { navController.navigate("carrito") }
                     )
                 },
                 containerColor = PureBlackBackground

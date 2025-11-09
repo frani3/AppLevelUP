@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -39,6 +40,37 @@ import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 
+@Composable
+fun CartActionButton(
+    count: Int,
+    onClick: () -> Unit,
+    tint: Color = Color.White
+) {
+    IconButton(onClick = onClick) {
+        BadgedBox(
+            badge = {
+                if (count > 0) {
+                    Badge(containerColor = PrimaryPurple) {
+                        val label = if (count > 99) "99+" else count.toString()
+                        Text(
+                            text = label,
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.ShoppingCart,
+                contentDescription = "Carrito",
+                tint = tint
+            )
+        }
+    }
+}
+
 // 🔹 Top bar principal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +78,9 @@ fun LandingPageTopBar(
     navController: NavController,
     onMenuClick: () -> Unit,
     isSearchVisible: Boolean,
-    onSearchVisibilityChange: (Boolean) -> Unit
+    onSearchVisibilityChange: (Boolean) -> Unit,
+    cartCount: Int,
+    onCartClick: () -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
@@ -97,6 +131,13 @@ fun LandingPageTopBar(
                         Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
                     }
                 }
+                CartActionButton(
+                    count = cartCount,
+                    onClick = {
+                        onSearchVisibilityChange(false)
+                        onCartClick()
+                    }
+                )
             }
         )
         AnimatedVisibility(visible = isSearchVisible, enter = fadeIn(), exit = fadeOut()) {
