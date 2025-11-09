@@ -10,4 +10,5 @@ class GetUserProfileUseCase(private val repo: UserRepository) {
     suspend fun getUserProfile(): UserProfile? = repo.getUserProfile()
     suspend fun getOrders(): List<Order> = repo.getUserOrders()
     suspend fun logout() = repo.logout()
+    suspend fun updateProfilePhoto(photoUri: String) = repo.updateProfilePhoto(photoUri)
 }

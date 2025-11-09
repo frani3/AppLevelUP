@@ -25,9 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
 
 	suspend fun seed() {
 		val productDao = productDao()
-		if (productDao.countProducts() == 0) {
-			productDao.upsertProducts(LocalSeedData.defaultProducts)
-		}
+		productDao.upsertProducts(LocalSeedData.defaultProducts)
 
 		val userDao = userDao()
 		if (userDao.countSuperAdmins() == 0) {

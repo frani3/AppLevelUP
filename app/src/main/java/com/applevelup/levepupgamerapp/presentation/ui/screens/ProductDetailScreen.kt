@@ -14,8 +14,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.applevelup.levepupgamerapp.presentation.ui.components.*
+import com.applevelup.levepupgamerapp.presentation.ui.components.DetailPrice
+import com.applevelup.levepupgamerapp.presentation.ui.components.DetailQuantityControl
+import com.applevelup.levepupgamerapp.presentation.ui.components.ProductDescription
+import com.applevelup.levepupgamerapp.presentation.ui.components.ProductHeader
+import com.applevelup.levepupgamerapp.presentation.ui.components.ProductImageCarousel
+import com.applevelup.levepupgamerapp.presentation.ui.components.ProductDetailTopBar
+import com.applevelup.levepupgamerapp.presentation.ui.components.ReviewsSection
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
+import com.applevelup.levepupgamerapp.utils.PriceUtils
 import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductDetailViewModel
 
@@ -73,7 +80,7 @@ fun ProductDetailScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Total", color = Color.Gray, fontSize = 14.sp)
                     Text(
-                        formatAsChileanPeso(state.totalPrice),
+                        PriceUtils.formatPriceCLP(state.totalPrice),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -116,7 +123,8 @@ fun ProductDetailScreen(
                     onDecrease = viewModel::decreaseQuantity
                 )
             }
-            item { ExpandableDescription() }
+            item { ProductDescription(product.description) }
+            item { ReviewsSection(state.reviews) }
         }
     }
 }

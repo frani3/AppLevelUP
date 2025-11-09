@@ -29,6 +29,9 @@ class UserViewModel(
     private val _logoutEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val logoutEvents = _logoutEvents.asSharedFlow()
 
+    private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val messages = _messages.asSharedFlow()
+
     init {
         loadUserData()
     }
@@ -45,6 +48,19 @@ class UserViewModel(
         viewModelScope.launch {
             useCase.logout()
             _logoutEvents.emit(Unit)
+        }
+    }
+
+    fun updateProfilePhoto(photoUri: String) {
+        viewModelScope.launch {
+            runCatching {
+                useCase.updateProfilePhoto(photoUri)
+            }.onSuccess {
+                loadUserData()
+                _messages.emit("Foto de perfil actualizada")
+            }.onFailure {
+                _messages.emit("No se pudo actualizar la foto de perfil")
+            }
         }
     }
 }

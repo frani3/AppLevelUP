@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
+import com.applevelup.levepupgamerapp.utils.PriceUtils
 
 @Composable
 fun EmptyProductView(categoryName: String) {
@@ -110,7 +111,7 @@ fun RatingBar(rating: Float, reviewCount: Int) {
 fun Price(price: Double, oldPrice: Double?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
-            text = "$${"%.2f".format(price)}",
+            text = PriceUtils.formatPriceCLP(price),
             fontWeight = FontWeight.Bold,
             color = PrimaryPurple,
             fontSize = 18.sp
@@ -118,7 +119,7 @@ fun Price(price: Double, oldPrice: Double?) {
         if (oldPrice != null) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "$${"%.2f".format(oldPrice)}",
+                text = PriceUtils.formatPriceCLP(oldPrice),
                 color = Color.Gray,
                 fontSize = 14.sp,
                 textDecoration = TextDecoration.LineThrough

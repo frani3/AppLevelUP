@@ -13,11 +13,13 @@ object ProductMapper {
 			oldPrice = entity.oldPrice,
 			rating = entity.rating,
 			reviews = entity.reviews,
-			imageRes = entity.imageRes
+			imageRes = entity.imageRes,
+			category = entity.category,
+			description = entity.description.orEmpty()
 		)
 	}
 
-	fun toEntity(product: Product, category: String, description: String? = null): ProductEntity {
+		fun toEntity(product: Product): ProductEntity {
 		return ProductEntity(
 			id = product.id,
 			name = product.name,
@@ -25,9 +27,9 @@ object ProductMapper {
 			oldPrice = product.oldPrice,
 			rating = product.rating,
 			reviews = product.reviews,
-			imageRes = product.imageRes,
-			category = category,
-			description = description
+				imageRes = product.imageRes,
+				category = product.category,
+				description = product.description
 		)
 	}
 }

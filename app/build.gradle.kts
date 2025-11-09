@@ -75,6 +75,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.compose.material:material-icons-extended:1.6.7")
 
+    // Images
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.34.0")

@@ -12,6 +12,7 @@ object UserMapper {
 			name = entity.fullName,
 			email = entity.email,
 			avatarRes = avatar,
+			photoUri = entity.photoUri,
 			orderCount = entity.orderCount,
 			wishlistCount = entity.wishlistCount,
 			couponCount = entity.couponCount

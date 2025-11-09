@@ -96,6 +96,20 @@ class UserRepositoryImpl(
             )
         }
     }
+
+    override suspend fun updateProfilePhoto(photoUri: String) {
+        val session = sessionPrefs.sessionFlow.first()
+        val targetUser = when (val userId = session.userId) {
+            null -> userDao.getPrimaryUser() ?: userDao.getSuperAdmin()
+            else -> userDao.getUserById(userId)
+        } ?: return
+
+        if (targetUser.isSuperAdmin) {
+            userDao.insertUser(targetUser.copy(photoUri = photoUri))
+        } else {
+            userDao.updatePhoto(targetUser.id, photoUri)
+        }
+    }
     private suspend fun incrementUserOrderCount() {
         val session = sessionPrefs.sessionFlow.first()
         val userId = session.userId ?: return

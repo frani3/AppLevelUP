@@ -7,5 +7,7 @@ data class Product(
     val oldPrice: Double? = null,
     val rating: Float,
     val reviews: Int = 0,
-    val imageRes: Int
+    val imageRes: Int,
+    val category: String,
+    val description: String = ""
 )

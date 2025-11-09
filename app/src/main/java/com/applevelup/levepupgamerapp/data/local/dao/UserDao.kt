@@ -40,6 +40,9 @@ interface UserDao {
 	@Query("UPDATE users SET password_hash = :passwordHash WHERE id = :id AND is_super_admin = 0")
 	suspend fun updatePassword(id: Long, passwordHash: String)
 
+	@Query("UPDATE users SET photo_uri = :photoUri WHERE id = :id AND is_super_admin = 0")
+	suspend fun updatePhoto(id: Long, photoUri: String)
+
 	@Query("DELETE FROM users WHERE id = :id AND is_super_admin = 0")
 	suspend fun deleteUser(id: Long)
 
