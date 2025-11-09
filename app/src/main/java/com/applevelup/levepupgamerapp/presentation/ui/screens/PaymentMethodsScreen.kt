@@ -15,8 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.applevelup.levepupgamerapp.presentation.ui.components.PaymentMethodCard
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.components.EmptyPaymentView
+import com.applevelup.levepupgamerapp.presentation.ui.components.PaymentMethodCard
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
 import com.applevelup.levepupgamerapp.presentation.viewmodel.PaymentViewModel
 
@@ -45,7 +46,7 @@ fun PaymentMethodsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("agregar_metodo_pago") },
+                onClick = { navController.navigate(Destinations.AddPaymentMethod.route) },
                 containerColor = PrimaryPurple,
                 contentColor = Color.White
             ) {
@@ -71,6 +72,10 @@ fun PaymentMethodsScreen(
                 items(state.methods, key = { it.id }) { method ->
                     PaymentMethodCard(
                         method = method,
+                        onSelect = {
+                            viewModel.markAsDefault(method.id)
+                            navController.popBackStack()
+                        },
                         onDelete = { viewModel.deleteMethod(method.id) }
                     )
                 }

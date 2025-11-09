@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.Order
 import com.applevelup.levepupgamerapp.domain.model.UserProfile
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.theme.CardBackgroundColor
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 
@@ -137,7 +139,7 @@ fun SettingsMenu(
         )
 
         SettingItem("Editar Perfil", Icons.Default.Edit) {
-            // TODO: Navegar a editar perfil
+            navController.navigate(Destinations.EditProfile.route)
         }
 
         SettingItem("Direcciones de Envío", Icons.Default.LocationOn) {
@@ -152,7 +154,7 @@ fun SettingsMenu(
             navController.navigate("notificaciones")
         }
 
-        SettingItem("Cerrar Sesión", Icons.Default.ExitToApp, onLogout)
+    SettingItem("Cerrar Sesión", Icons.AutoMirrored.Filled.ExitToApp, onLogout)
     }
 }
 

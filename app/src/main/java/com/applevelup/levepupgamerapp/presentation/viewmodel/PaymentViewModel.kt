@@ -42,4 +42,11 @@ class PaymentViewModel(
             loadMethods()
         }
     }
+
+    fun markAsDefault(id: Int) {
+        viewModelScope.launch {
+            repo.setDefaultPaymentMethod(id)
+            loadMethods()
+        }
+    }
 }

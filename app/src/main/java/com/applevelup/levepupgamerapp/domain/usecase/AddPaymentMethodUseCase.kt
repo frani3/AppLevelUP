@@ -9,7 +9,7 @@ class AddPaymentMethodUseCase(private val repo: PaymentRepository) {
         name: String,
         number: String,
         expiry: String
-    ) {
+    ): PaymentMethod {
         val cardType = when {
             number.startsWith("4") -> CardType.VISA
             number.startsWith("5") -> CardType.MASTERCARD
@@ -25,5 +25,6 @@ class AddPaymentMethodUseCase(private val repo: PaymentRepository) {
             isDefault = false
         )
         repo.addPaymentMethod(method)
+        return method
     }
 }

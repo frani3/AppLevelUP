@@ -3,6 +3,7 @@ package com.applevelup.levepupgamerapp.presentation.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,7 @@ import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 @Composable
 fun PaymentMethodCard(
     method: PaymentMethod,
+    onSelect: () -> Unit,
     onDelete: () -> Unit
 ) {
     Card(
@@ -38,7 +40,8 @@ fun PaymentMethodCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .clickable(onClick = onSelect),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

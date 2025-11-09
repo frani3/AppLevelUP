@@ -26,14 +26,15 @@ import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 @Composable
 fun AddressCard(
     address: Address,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onSelect: () -> Unit,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, PrimaryPurple, RoundedCornerShape(16.dp))
-            .clickable(onClick = onEdit),
+            .clickable(onClick = onSelect),
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
         shape = RoundedCornerShape(16.dp)
     ) {

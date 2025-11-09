@@ -4,69 +4,132 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.*
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 
 // 🔹 Top bar principal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LandingPageTopBar(navController: NavController, onMenuClick: () -> Unit) {
-    CenterAlignedTopAppBar(
-        title = { Text("LevelUp Store", fontWeight = FontWeight.Bold, color = Color.White) },
-        navigationIcon = {
-            IconButton(onClick = onMenuClick) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
-            }
-        },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = PureBlackBackground
-        ),
-        actions = {
-            IconButton(onClick = { /* TODO: Buscar */ }) {
-                Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
-            }
+fun LandingPageTopBar(
+    navController: NavController,
+    onMenuClick: () -> Unit,
+    isSearchVisible: Boolean,
+    onSearchVisibilityChange: (Boolean) -> Unit
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+
+    fun openSearch() {
+        focusManager.clearFocus()
+        val trimmed = query.trim()
+        val route = if (trimmed.isNotEmpty()) {
+            Destinations.Search.withQuery(trimmed)
+        } else {
+            Destinations.Search.route
         }
-    )
-}
+        navController.navigate(route)
+        query = ""
+        onSearchVisibilityChange(false)
+    }
 
-// 🔹 Barra de búsqueda simple
-@Composable
-fun SearchBar() {
-    var query by remember { mutableStateOf("") }
+    LaunchedEffect(isSearchVisible) {
+        if (isSearchVisible) {
+            focusRequester.requestFocus()
+        } else {
+            focusManager.clearFocus()
+        }
+    }
 
-    OutlinedTextField(
-        value = query,
-        onValueChange = { query = it },
-        label = { Text("Buscar productos...") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = PrimaryPurple,
-            unfocusedIndicatorColor = Color.Gray,
-            focusedLabelColor = PrimaryPurple
+    Column(modifier = Modifier.background(PureBlackBackground)) {
+        CenterAlignedTopAppBar(
+            title = { Text("LevelUp Store", fontWeight = FontWeight.Bold, color = Color.White) },
+            navigationIcon = {
+                IconButton(onClick = onMenuClick) {
+                    Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = PureBlackBackground
+            ),
+            actions = {
+                if (isSearchVisible) {
+                    IconButton(onClick = {
+                        query = ""
+                        onSearchVisibilityChange(false)
+                    }) {
+                        Icon(Icons.Default.Close, contentDescription = "Cerrar búsqueda", tint = Color.White)
+                    }
+                } else {
+                    IconButton(onClick = { onSearchVisibilityChange(true) }) {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar", tint = Color.White)
+                    }
+                }
+            }
         )
-    )
+        AnimatedVisibility(visible = isSearchVisible, enter = fadeIn(), exit = fadeOut()) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Buscar productos...") },
+                trailingIcon = {
+                    IconButton(onClick = { openSearch() }) {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .focusRequester(focusRequester),
+                singleLine = true,
+                shape = RoundedCornerShape(20.dp),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { openSearch() }),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = PrimaryPurple,
+                    unfocusedIndicatorColor = Color.Gray,
+                    focusedLabelColor = PrimaryPurple,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = PrimaryPurple,
+                    focusedContainerColor = Color.Black.copy(alpha = 0.6f),
+                    unfocusedContainerColor = Color.Black.copy(alpha = 0.4f)
+                )
+            )
+        }
+    }
 }
 
 // 🔹 Carrusel de promociones
@@ -121,7 +184,7 @@ fun SectionTitle(title: String) {
 
 // 🔹 Chips de categorías
 @Composable
-fun CategoryChips(categories: List<Category>) {
+fun CategoryChips(categories: List<Category>, navController: NavController) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -130,7 +193,9 @@ fun CategoryChips(categories: List<Category>) {
     ) {
         items(categories) { category ->
             AssistChip(
-                onClick = { /* TODO: Ir a Category */ },
+                onClick = {
+                    navController.navigate(Destinations.ProductList.create(category.name))
+                },
                 label = { Text(category.name, color = Color.White) },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = PrimaryPurple.copy(alpha = 0.2f)

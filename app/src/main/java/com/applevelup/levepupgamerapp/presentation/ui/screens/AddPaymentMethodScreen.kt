@@ -59,8 +59,9 @@ fun AddPaymentMethodScreen(
                 Spacer(Modifier.height(32.dp))
                 Button(
                     onClick = {
-                        viewModel.saveCard()
-                        if (state.isValid) navController.popBackStack()
+                        if (viewModel.saveCard()) {
+                            navController.popBackStack()
+                        }
                     },
                     enabled = state.isValid,
                     modifier = Modifier

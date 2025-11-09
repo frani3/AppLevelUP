@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
 import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
@@ -80,7 +81,7 @@ fun CartScreen(
                 )
 
                 Button(
-                    onClick = { /* TODO: Pasar a checkout */ },
+                    onClick = { navController.navigate(Destinations.Checkout.route) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)

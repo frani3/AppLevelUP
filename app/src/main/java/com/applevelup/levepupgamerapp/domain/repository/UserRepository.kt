@@ -9,6 +9,7 @@ interface UserRepository {
     fun observeUserProfile(): Flow<UserProfile?>
     suspend fun getUserProfile(): UserProfile?
     suspend fun getUserOrders(): List<Order>
+    suspend fun addOrder(order: Order)
     suspend fun authenticate(email: String, password: String): User?
     suspend fun logout()
     suspend fun updateUser(fullName: String, email: String, newPassword: String?)

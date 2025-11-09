@@ -13,8 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.components.AddressCard
 import com.applevelup.levepupgamerapp.presentation.ui.components.EmptyAddressView
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
@@ -29,6 +33,17 @@ fun AddressScreen(
     viewModel: AddressViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadAddresses()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
@@ -51,7 +66,7 @@ fun AddressScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("add_address") },
+                onClick = { navController.navigate(Destinations.AddAddress.route) },
                 containerColor = PrimaryPurple,
                 contentColor = Color.White
             ) {
@@ -60,26 +75,33 @@ fun AddressScreen(
         },
         containerColor = PureBlackBackground
     ) { paddingValues ->
-        when {
-            state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PrimaryPurple)
-            }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            when {
+                state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = PrimaryPurple)
+                }
 
-            state.addresses.isEmpty() -> EmptyAddressView()
+                state.addresses.isEmpty() -> EmptyAddressView()
 
-            else -> LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(state.addresses, key = { it.id }) { address ->
-                    AddressCard(
-                        address = address,
-                        onEdit = { /* TODO: Editar dirección */ },
-                        onDelete = { viewModel.removeAddress(address.id) }
-                    )
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(state.addresses, key = { it.id }) { address ->
+                        AddressCard(
+                            address = address,
+                            onSelect = {
+                                viewModel.setDefault(address.id)
+                                navController.popBackStack()
+                            },
+                            onDelete = { viewModel.removeAddress(address.id) }
+                        )
+                    }
                 }
             }
         }

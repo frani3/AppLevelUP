@@ -22,12 +22,6 @@ class UserRepositoryImpl(
     private val sessionPrefs: SessionPreferencesDataSource = LevelUpApplication.sessionPreferences
 ) : UserRepository {
 
-    private val orders = listOf(
-        Order("#345-1", "15 Oct 2025", "Entregado", "$149.990", 2),
-        Order("#312-8", "02 Oct 2025", "Entregado", "$89.990", 1),
-        Order("#299-3", "21 Sep 2025", "Cancelado", "$29.990", 1)
-    )
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeUserProfile(): Flow<UserProfile?> {
         return sessionPrefs.sessionFlow.flatMapLatest { session ->
@@ -57,7 +51,14 @@ class UserRepositoryImpl(
         return entity?.let(UserMapper::toProfile)
     }
 
-    override suspend fun getUserOrders(): List<Order> = orders
+    override suspend fun getUserOrders(): List<Order> = synchronized(orders) { orders.toList() }
+
+    override suspend fun addOrder(order: Order) {
+        synchronized(orders) {
+            orders.add(0, order)
+        }
+        incrementUserOrderCount()
+    }
 
     override suspend fun authenticate(email: String, password: String): User? {
         val normalizedEmail = email.trim()
@@ -94,5 +95,20 @@ class UserRepositoryImpl(
                 email = if (shouldPersistEmail) email else null
             )
         }
+    }
+    private suspend fun incrementUserOrderCount() {
+        val session = sessionPrefs.sessionFlow.first()
+        val userId = session.userId ?: return
+        val entity = userDao.getUserById(userId) ?: return
+        val updated = entity.copy(orderCount = entity.orderCount + 1)
+        userDao.insertUser(updated)
+    }
+
+    companion object {
+        private val orders = mutableListOf(
+            Order("#345-1", "15 Oct 2025", "Entregado", "$149.990", 2),
+            Order("#312-8", "02 Oct 2025", "Entregado", "$89.990", 1),
+            Order("#299-3", "21 Sep 2025", "Cancelado", "$29.990", 1)
+        )
     }
 }

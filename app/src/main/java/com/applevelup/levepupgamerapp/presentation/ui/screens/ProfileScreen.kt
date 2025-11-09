@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.*
@@ -25,6 +28,7 @@ fun ProfileScreen(
     viewModel: UserViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(viewModel) {
         viewModel.logoutEvents.collect {
@@ -32,6 +36,16 @@ fun ProfileScreen(
                 popUpTo(navController.graph.id) { inclusive = true }
             }
         }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadUserData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(

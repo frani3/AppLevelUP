@@ -42,4 +42,11 @@ class AddressViewModel(
             loadAddresses()
         }
     }
+
+    fun setDefault(id: Int) {
+        viewModelScope.launch {
+            repo.setDefaultAddress(id)
+            loadAddresses()
+        }
+    }
 }

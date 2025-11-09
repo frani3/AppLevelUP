@@ -26,6 +26,17 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         // Home / catálogo
         composable(Destinations.Landing.route) { LandingPageScreen(navController) }
         composable(Destinations.Categories.route) { CategoryScreen(navController) }
+        composable(
+            route = "${Destinations.Search.route}?query={query}",
+            arguments = listOf(navArgument("query") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            })
+        ) { backStack ->
+            val initialQuery = backStack.arguments?.getString("query").orEmpty()
+            SearchScreen(navController, initialQuery)
+        }
 
         composable(Destinations.ProductList.route) { backStack ->
             val category = backStack.arguments?.getString("categoryName") ?: "Categoría"
@@ -44,9 +55,23 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         composable(Destinations.Profile.route) { ProfileScreen(navController) }
         composable(Destinations.Account.route) { AccountScreen(navController) }
         composable(Destinations.Notifications.route) { NotificationsScreen(navController) }
+    composable(Destinations.EditProfile.route) { EditProfileScreen(navController) }
 
         // Carrito
         composable(Destinations.Cart.route) { CartScreen(navController) }
+        composable(Destinations.Checkout.route) { CheckoutScreen(navController) }
+
+        composable(
+            route = Destinations.OrderSuccess.route,
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType },
+                navArgument("total") { type = NavType.IntType }
+            )
+        ) { backStack ->
+            val orderId = backStack.arguments?.getString("orderId").orEmpty()
+            val total = backStack.arguments?.getInt("total") ?: 0
+            OrderSuccessScreen(navController, orderId, total)
+        }
 
         // Pagos
         composable(Destinations.PaymentMethods.route) { PaymentMethodsScreen(navController) }
@@ -54,7 +79,6 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
 
         // Direcciones
         composable(Destinations.Addresses.route) { AddressScreen(navController) }
-        // Si creas la pantalla de alta, actívala acá:
-        // composable(Destinations.AddAddress.route) { AddAddressScreen(navController) }
+        composable(Destinations.AddAddress.route) { AddAddressScreen(navController) }
     }
 }

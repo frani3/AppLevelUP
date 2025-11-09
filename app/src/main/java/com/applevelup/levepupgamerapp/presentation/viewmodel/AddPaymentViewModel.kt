@@ -57,12 +57,15 @@ class AddPaymentViewModel(
         _uiState.update { it.copy(isValid = isValid) }
     }
 
-    fun saveCard() {
+    fun saveCard(): Boolean {
         val s = _uiState.value
         if (!s.isValid) {
             _uiState.update { it.copy(showError = true) }
-            return
+            return false
         }
-        addMethodUseCase(s.cardholderName, s.cardNumber, s.expiryDate)
+        val method = addMethodUseCase(s.cardholderName, s.cardNumber, s.expiryDate)
+        repo.setDefaultPaymentMethod(method.id)
+        _uiState.value = AddPaymentUiState()
+        return true
     }
 }

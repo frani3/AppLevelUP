@@ -63,7 +63,7 @@ fun NotificationsScreen(
             }
 
             item {
-                Divider(
+                HorizontalDivider(
                     color = Color.Gray.copy(alpha = 0.3f),
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)
                 )
