@@ -1,5 +1,6 @@
 package com.applevelup.levepupgamerapp.presentation.ui.screens
 
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -58,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,9 +77,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
-    navController: NavController,
-    viewModel: NotificationFeedViewModel = viewModel()
+    navController: NavController
 ) {
+    val context = LocalContext.current
+    val viewModelStoreOwner = remember(context) {
+        (context as? ComponentActivity)
+            ?: error("NotificationsScreen requiere un ComponentActivity como host")
+    }
+    val viewModel: NotificationFeedViewModel = viewModel(viewModelStoreOwner)
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()

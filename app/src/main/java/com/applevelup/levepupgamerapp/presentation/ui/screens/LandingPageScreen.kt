@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,6 +65,7 @@ import com.applevelup.levepupgamerapp.presentation.ui.components.navigateToMainD
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.LandingViewModel
+import com.applevelup.levepupgamerapp.presentation.viewmodel.NotificationFeedViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.SessionViewModel
 import java.util.Locale
 import kotlinx.coroutines.launch
@@ -78,10 +80,16 @@ fun LandingPageScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val sessionViewModel: SessionViewModel = viewModel()
+    val notificationOwner = remember(context) {
+        (context as? ComponentActivity)
+            ?: error("LandingPageScreen requiere un ComponentActivity como host")
+    }
+    val notificationViewModel: NotificationFeedViewModel = viewModel(notificationOwner)
 
     val landingState by landingViewModel.uiState.collectAsState()
     val cartState by cartViewModel.uiState.collectAsState()
     val sessionState by sessionViewModel.sessionState.collectAsState()
+    val notificationState by notificationViewModel.uiState.collectAsState()
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchActive by rememberSaveable { mutableStateOf(false) }
@@ -109,7 +117,7 @@ fun LandingPageScreen(
     }
 
     val cartCount = remember(cartState.items) { cartState.items.sumOf { it.quantity } }
-    val notificationCount = remember { 3 }
+    val notificationCount = notificationState.unreadCount
     val isAdminUser = remember(sessionState) {
         sessionState.isSuperAdmin || sessionState.profileRole?.equals("Administrador", ignoreCase = true) == true
     }
