@@ -34,8 +34,8 @@ interface UserDao {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	suspend fun insertUsers(users: List<UserEntity>)
 
-	@Query("UPDATE users SET full_name = :fullName, email = :email WHERE id = :id AND is_super_admin = 0")
-	suspend fun updateUser(id: Long, fullName: String, email: String)
+	@Query("UPDATE users SET full_name = :fullName, first_name = :firstName, last_name = :lastName, email = :email WHERE id = :id AND is_super_admin = 0")
+	suspend fun updateUser(id: Long, fullName: String, firstName: String?, lastName: String?, email: String)
 
 	@Query("UPDATE users SET password_hash = :passwordHash WHERE id = :id AND is_super_admin = 0")
 	suspend fun updatePassword(id: Long, passwordHash: String)

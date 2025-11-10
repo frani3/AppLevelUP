@@ -99,8 +99,7 @@ fun ForgotPasswordScreen(
                         placeholder = { Text("tucorreo@ejemplo.com", color = Color.Gray) },
                         leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color.LightGray) },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
+                            .fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { /* enviar */ }),

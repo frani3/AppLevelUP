@@ -14,7 +14,7 @@ import com.applevelup.levepupgamerapp.data.local.seed.LocalSeedData
 
 @Database(
 	entities = [ProductEntity::class, CartItemEntity::class, UserEntity::class],
-	version = 2,
+	version = 3,
 	exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -28,14 +28,15 @@ abstract class AppDatabase : RoomDatabase() {
 		productDao.upsertProducts(LocalSeedData.defaultProducts)
 
 		val userDao = userDao()
-		if (userDao.countSuperAdmins() == 0) {
-			userDao.insertUser(LocalSeedData.superAdmin)
+		LocalSeedData.seededUsers.forEach { seed ->
+			val existing = userDao.findByEmail(seed.email)
+			if (existing == null) {
+				userDao.insertUser(seed.copy(id = 0))
+			}
 		}
 
-		val defaultUser = LocalSeedData.defaultUser
-		val existingUser = userDao.findByEmail(defaultUser.email)
-		if (existingUser == null) {
-			userDao.insertUser(defaultUser)
+		if (userDao.countSuperAdmins() == 0) {
+			userDao.insertUser(LocalSeedData.superAdmin.copy(id = 0))
 		}
 	}
 

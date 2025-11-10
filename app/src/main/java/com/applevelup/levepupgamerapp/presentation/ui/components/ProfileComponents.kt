@@ -96,6 +96,26 @@ fun ProfileHeader(user: UserProfile, onChangePhotoRequest: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
         Text(user.name, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = Color.White)
         Text(user.email, color = Color.Gray, fontSize = 14.sp)
+        if (!user.address.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(user.address, color = Color.LightGray, fontSize = 13.sp)
+        }
+        if (user.hasLifetimeDiscount) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Surface(
+                color = PrimaryPurple.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    text = "20% OFF vitalicio activado",
+                    color = PrimaryPurple,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
     }
 }
 

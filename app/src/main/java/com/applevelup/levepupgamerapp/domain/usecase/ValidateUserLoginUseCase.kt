@@ -1,12 +1,16 @@
 package com.applevelup.levepupgamerapp.domain.usecase
 
+import com.applevelup.levepupgamerapp.data.repository.AddressRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.PaymentRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.SessionState
 import com.applevelup.levepupgamerapp.domain.repository.SessionRepository
 import com.applevelup.levepupgamerapp.domain.repository.UserRepository
 
 class ValidateUserLoginUseCase(
 	private val userRepository: UserRepository,
-	private val sessionRepository: SessionRepository
+	private val sessionRepository: SessionRepository,
+	private val addressRepository: AddressRepositoryImpl = AddressRepositoryImpl(),
+	private val paymentRepository: PaymentRepositoryImpl = PaymentRepositoryImpl()
 ) {
 
 	sealed class Result {
@@ -15,21 +19,42 @@ class ValidateUserLoginUseCase(
 	}
 
 	suspend operator fun invoke(email: String, password: String, rememberMe: Boolean): Result {
-		if (email.isBlank() || password.isBlank()) {
-			return Result.Error("Todos los campos son obligatorios")
+		val normalizedEmail = email.trim()
+		if (normalizedEmail.isBlank()) {
+			return Result.Error("El correo es obligatorio")
 		}
 
-		val user = userRepository.authenticate(email, password) ?: return Result.Error("Credenciales inválidas")
+		val candidate = userRepository.findUserByEmail(normalizedEmail)
+			?: return Result.Error("Credenciales inválidas")
+
+		val authenticatedUser = if (candidate.hasPassword) {
+			if (password.isBlank()) {
+				return Result.Error("Debes ingresar tu contraseña")
+			}
+			userRepository.authenticate(normalizedEmail, password)
+				?: return Result.Error("Credenciales inválidas")
+		} else {
+			userRepository.authenticate(normalizedEmail, password) ?: candidate
+		}
 
 		sessionRepository.saveSession(
 			SessionState(
 				isLoggedIn = true,
-				userId = user.id,
-				email = if (rememberMe) user.email else null,
-				fullName = user.fullName,
+				userId = authenticatedUser.id,
+				email = if (rememberMe) authenticatedUser.email else null,
+				fullName = authenticatedUser.fullName,
 				rememberMe = rememberMe
 			)
 		)
+
+		val profile = userRepository.getUserProfile()
+		val primaryAddress = profile?.address?.trim().orEmpty()
+		if (primaryAddress.isNotEmpty()) {
+			addressRepository.setPrimaryAddress(primaryAddress)
+		} else {
+			addressRepository.clearAll()
+		}
+		paymentRepository.reset()
 
 		return Result.Success
 	}

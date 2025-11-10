@@ -2,10 +2,18 @@ package com.applevelup.levepupgamerapp.data.repository
 
 import com.applevelup.levepupgamerapp.domain.model.Address
 import com.applevelup.levepupgamerapp.domain.repository.AddressRepository
+import kotlinx.coroutines.runBlocking
 
-class AddressRepositoryImpl : AddressRepository {
+class AddressRepositoryImpl(
+    private val userRepository: UserRepositoryImpl = UserRepositoryImpl()
+) : AddressRepository {
 
-    override fun getAddresses(): List<Address> = synchronized(addresses) { addresses.toList() }
+    override fun getAddresses(): List<Address> = synchronized(addresses) {
+        if (addresses.isEmpty()) {
+            bootstrapFromProfileLocked()
+        }
+        addresses.toList()
+    }
 
     override fun addAddress(
         alias: String,
@@ -25,6 +33,7 @@ class AddressRepositoryImpl : AddressRepository {
         )
 
         addresses.add(0, trimmedAddress)
+        updateNextIdLocked()
 
         if (setAsDefault || addresses.none { it.isDefault }) {
             setDefaultLocked(id)
@@ -38,6 +47,7 @@ class AddressRepositoryImpl : AddressRepository {
             val removedWasDefault = addresses.firstOrNull { it.id == id }?.isDefault == true
             addresses.removeAll { it.id == id }
             if (addresses.isEmpty()) {
+                updateNextIdLocked()
                 return
             }
             if (removedWasDefault || addresses.none { it.isDefault }) {
@@ -71,12 +81,58 @@ class AddressRepositoryImpl : AddressRepository {
         }
     }
 
-    companion object {
-        private val addresses = mutableListOf(
-            Address(1, "Casa", "Av. Siempre Viva 742", "Springfield", "Portón Verde", true),
-            Address(2, "Oficina", "Calle Falsa 123", "Shelbyville", "Piso 3, oficina B", false)
-        )
+    fun setPrimaryAddress(fullAddress: String) {
+        synchronized(addresses) {
+            addresses.clear()
+            if (fullAddress.isNotBlank()) {
+                addresses.add(
+                    Address(
+                        id = nextId++,
+                        alias = "Principal",
+                        street = fullAddress.trim(),
+                        city = "",
+                        details = "",
+                        isDefault = true
+                    )
+                )
+            }
+            updateNextIdLocked()
+        }
+    }
 
-        private var nextId: Int = (addresses.maxOfOrNull { it.id } ?: 0) + 1
+    fun clearAll() {
+        synchronized(addresses) {
+            addresses.clear()
+            nextId = 1
+        }
+    }
+
+    private fun bootstrapFromProfileLocked() {
+        val profile = runBlocking { userRepository.getUserProfile() }
+        val mainAddress = profile?.address?.trim().orEmpty()
+        if (mainAddress.isEmpty()) {
+            updateNextIdLocked()
+            return
+        }
+        addresses.add(
+            Address(
+                id = nextId++,
+                alias = "Principal",
+                street = mainAddress,
+                city = profile?.comuna?.trim().orEmpty(),
+                details = "",
+                isDefault = true
+            )
+        )
+        updateNextIdLocked()
+    }
+
+    private fun updateNextIdLocked() {
+        nextId = (addresses.maxOfOrNull { it.id } ?: 0) + 1
+    }
+
+    companion object {
+        private val addresses = mutableListOf<Address>()
+        private var nextId: Int = 1
     }
 }

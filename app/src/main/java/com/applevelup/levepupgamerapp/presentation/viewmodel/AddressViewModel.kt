@@ -6,9 +6,11 @@ import com.applevelup.levepupgamerapp.data.repository.AddressRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.Address
 import com.applevelup.levepupgamerapp.domain.usecase.DeleteAddressUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.GetAddressesUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 
 data class AddressUiState(
@@ -32,13 +34,14 @@ class AddressViewModel(
 
     fun loadAddresses() {
         viewModelScope.launch {
-            _uiState.update { it.copy(addresses = getAddresses(), isLoading = false) }
+            val current = withContext(Dispatchers.IO) { getAddresses() }
+            _uiState.update { it.copy(addresses = current, isLoading = false) }
         }
     }
 
     fun removeAddress(id: Int) {
         viewModelScope.launch {
-            deleteAddress(id)
+            withContext(Dispatchers.IO) { deleteAddress(id) }
             loadAddresses()
         }
     }

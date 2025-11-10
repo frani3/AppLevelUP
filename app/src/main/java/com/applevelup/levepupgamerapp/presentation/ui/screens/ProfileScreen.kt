@@ -128,33 +128,57 @@ fun ProfileScreen(
         containerColor = PureBlackBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        if (state.isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PrimaryPurple)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                item {
-                    ProfileHeader(
-                        user = state.profile!!,
-                        onChangePhotoRequest = { showPhotoSheet = true }
-                    )
+        when {
+            state.isLoading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = PrimaryPurple)
                 }
-                item { Spacer(Modifier.height(24.dp)) }
-                item { StatsPanel(user = state.profile!!) }
-                item { Spacer(Modifier.height(32.dp)) }
-                item { OrderHistory(orders = state.orders) }
-                item { Spacer(Modifier.height(32.dp)) }
-                item {
-                    SettingsMenu(
-                        navController = navController,
-                        onLogout = viewModel::logout
-                    )
+            }
+            state.profile == null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Debes iniciar sesión para ver tu perfil",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(onClick = { navController.navigate("login") }) {
+                            Text("Ir a iniciar sesión")
+                        }
+                    }
+                }
+            }
+            else -> {
+                val profile = state.profile!!
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        ProfileHeader(
+                            user = profile,
+                            onChangePhotoRequest = { showPhotoSheet = true }
+                        )
+                    }
+                    item { Spacer(Modifier.height(24.dp)) }
+                    item { StatsPanel(user = profile) }
+                    item { Spacer(Modifier.height(32.dp)) }
+                    item { OrderHistory(orders = state.orders) }
+                    item { Spacer(Modifier.height(32.dp)) }
+                    item {
+                        SettingsMenu(
+                            navController = navController,
+                            onLogout = viewModel::logout
+                        )
+                    }
                 }
             }
         }

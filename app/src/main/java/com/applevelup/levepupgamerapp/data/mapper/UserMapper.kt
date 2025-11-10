@@ -15,7 +15,15 @@ object UserMapper {
 			photoUri = entity.photoUri,
 			orderCount = entity.orderCount,
 			wishlistCount = entity.wishlistCount,
-			couponCount = entity.couponCount
+			couponCount = entity.couponCount,
+			run = entity.run,
+			profileRole = entity.profileRole,
+			birthDate = entity.birthDate,
+			region = entity.region,
+			comuna = entity.comuna,
+			address = entity.address,
+			hasLifetimeDiscount = entity.hasLifetimeDiscount,
+			isSystem = entity.isSystem
 		)
 	}
 
@@ -24,6 +32,13 @@ object UserMapper {
 		fullName = entity.fullName,
 		email = entity.email,
 		isSuperAdmin = entity.isSuperAdmin,
-		avatarRes = entity.avatarRes
+			avatarRes = entity.avatarRes,
+			run = entity.run,
+			firstName = entity.firstName,
+			lastName = entity.lastName,
+			profileRole = entity.profileRole,
+			hasPassword = !entity.passwordHash.isNullOrBlank(),
+			hasLifetimeDiscount = entity.hasLifetimeDiscount,
+			isSystem = entity.isSystem
 	)
 }

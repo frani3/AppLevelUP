@@ -10,7 +10,15 @@ interface UserRepository {
     suspend fun getUserProfile(): UserProfile?
     suspend fun getUserOrders(): List<Order>
     suspend fun addOrder(order: Order)
+    suspend fun findUserByEmail(email: String): User?
     suspend fun authenticate(email: String, password: String): User?
+    suspend fun register(
+        fullName: String,
+        email: String,
+        password: String,
+        birthDate: String,
+        address: String
+    ): User
     suspend fun logout()
     suspend fun updateUser(fullName: String, email: String, newPassword: String?)
     suspend fun updateProfilePhoto(photoUri: String)
