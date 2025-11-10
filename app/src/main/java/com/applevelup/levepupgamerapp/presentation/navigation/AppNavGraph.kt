@@ -143,6 +143,13 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             popExitTransition = { backwardExit() }
         ) { NotificationsScreen(navController) }
         composable(
+            route = Destinations.NotificationSettings.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { NotificationSettingsScreen(navController) }
+        composable(
             route = Destinations.EditProfile.route,
             enterTransition = { forwardEnter() },
             exitTransition = { forwardExit() },

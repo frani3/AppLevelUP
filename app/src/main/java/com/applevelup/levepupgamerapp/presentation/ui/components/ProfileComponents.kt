@@ -226,7 +226,7 @@ fun SettingsMenu(
         }
 
         SettingItem("Notificaciones", Icons.Default.Notifications) {
-            navController.navigate("notificaciones")
+            navController.navigate(Destinations.NotificationSettings.route)
         }
 
     SettingItem("Cerrar Sesión", Icons.AutoMirrored.Filled.ExitToApp, onLogout)
