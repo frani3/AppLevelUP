@@ -1,14 +1,20 @@
 package com.applevelup.levepupgamerapp.presentation.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.Product
-import com.applevelup.levepupgamerapp.presentation.ui.theme.*
+import com.applevelup.levepupgamerapp.presentation.ui.theme.CardBackgroundColor
+import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.utils.PriceUtils
 
 @Composable
@@ -44,7 +51,9 @@ fun EmptyProductView(categoryName: String) {
 fun ProductListItem(
     product: Product,
     onAddToCart: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    isFavorite: Boolean = false,
+    onToggleFavorite: (() -> Unit)? = null
 ) {
     Card(
         modifier = Modifier.clickable {
@@ -78,19 +87,44 @@ fun ProductListItem(
                 Price(price = product.price, oldPrice = product.oldPrice)
             }
 
-            Surface(
-                modifier = Modifier.size(40.dp),
-                shape = CircleShape,
-                color = PrimaryPurple.copy(alpha = 0.1f),
-                onClick = onAddToCart
+            Column(
+                modifier = Modifier.height(110.dp),
+                horizontalAlignment = Alignment.End
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.AddShoppingCart,
-                        contentDescription = "Agregar al Carrito",
-                        tint = PrimaryPurple,
-                        modifier = Modifier.size(24.dp)
-                    )
+                if (onToggleFavorite != null) {
+                    Surface(
+                        modifier = Modifier.size(36.dp),
+                        shape = CircleShape,
+                        color = PrimaryPurple.copy(alpha = 0.1f),
+                        onClick = onToggleFavorite
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = if (isFavorite) "Quitar de favoritos" else "Agregar a favoritos",
+                                tint = if (isFavorite) PrimaryPurple else Color.LightGray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Surface(
+                    modifier = Modifier.size(40.dp),
+                    shape = CircleShape,
+                    color = PrimaryPurple.copy(alpha = 0.1f),
+                    onClick = onAddToCart
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.AddShoppingCart,
+                            contentDescription = "Agregar al Carrito",
+                            tint = PrimaryPurple,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }

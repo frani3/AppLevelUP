@@ -2,17 +2,22 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.applevelup.levepupgamerapp.data.repository.CartRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.FavoritesRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.ProductRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.ProductReviewRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.domain.model.ProductReview
-import com.applevelup.levepupgamerapp.data.repository.CartRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.ProductReviewRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.usecase.AddToCartUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.GetProductByIdUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.GetProductReviewsUseCase
+import com.applevelup.levepupgamerapp.domain.usecase.ObserveFavoriteProductIdsUseCase
+import com.applevelup.levepupgamerapp.domain.usecase.ToggleFavoriteUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -34,11 +39,14 @@ class ProductDetailViewModel(
         CartRepositoryImpl(),
         SessionRepositoryImpl()
     ),
-    private val getProductReviews: GetProductReviewsUseCase = GetProductReviewsUseCase(ProductReviewRepositoryImpl())
+    private val getProductReviews: GetProductReviewsUseCase = GetProductReviewsUseCase(ProductReviewRepositoryImpl()),
+    private val observeFavoriteIds: ObserveFavoriteProductIdsUseCase = ObserveFavoriteProductIdsUseCase(FavoritesRepositoryImpl()),
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase = ToggleFavoriteUseCase(FavoritesRepositoryImpl())
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductDetailUiState())
     val uiState: StateFlow<ProductDetailUiState> = _uiState
+    private var favoritesJob: Job? = null
 
     fun loadProduct(productId: Int) {
         viewModelScope.launch {
@@ -51,6 +59,15 @@ class ProductDetailViewModel(
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(error = e.message, isLoading = false)
+                }
+            }
+        }
+
+        favoritesJob?.cancel()
+        favoritesJob = viewModelScope.launch {
+            observeFavoriteIds().collectLatest { favoriteIds ->
+                _uiState.update { state ->
+                    state.copy(isFavorite = favoriteIds.contains(productId))
                 }
             }
         }
@@ -67,7 +84,10 @@ class ProductDetailViewModel(
     }
 
     fun toggleFavorite() {
-        _uiState.update { it.copy(isFavorite = !it.isFavorite) }
+        val productId = _uiState.value.product?.id ?: return
+        viewModelScope.launch {
+            toggleFavoriteUseCase(productId)
+        }
     }
 
     fun addCurrentSelectionToCart() {

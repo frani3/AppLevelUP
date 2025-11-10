@@ -110,6 +110,16 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             ProductDetailScreen(navController, id)
         }
 
+        composable(
+            route = Destinations.Favorites.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) {
+            FavoritesScreen(navController)
+        }
+
         // Usuario
         composable(
             route = Destinations.Profile.route,

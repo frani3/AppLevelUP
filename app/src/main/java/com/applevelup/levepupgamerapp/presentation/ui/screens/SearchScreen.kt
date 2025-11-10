@@ -4,28 +4,33 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,10 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.ProductListItem
@@ -56,7 +63,6 @@ fun SearchScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val focusManager = LocalFocusManager.current
     val query = state.query
     val isSearching = state.isSearching
     val errorMessage = state.errorMessage
@@ -77,64 +83,23 @@ fun SearchScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Buscar", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = PrimaryPurple,
-                    titleContentColor = Color.White
-                ),
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.White
-                        )
-                    }
-                }
+            SearchScreenTopBar(
+                query = query,
+                onQueryChange = viewModel::onQueryChange,
+                onBack = { navController.popBackStack() },
+                onClear = { viewModel.onQueryChange("") },
+                onSubmit = viewModel::search
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = PureBlackBackground
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = viewModel::onQueryChange,
-                label = { Text("¿Qué estás buscando?") },
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            focusManager.clearFocus()
-                            viewModel.search()
-                        }
-                    ) {
-                        Icon(Icons.Default.Search, contentDescription = "Buscar")
-                    }
-                },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = {
-                    focusManager.clearFocus()
-                    viewModel.search()
-                }),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = PrimaryPurple,
-                    unfocusedIndicatorColor = Color.Gray,
-                    focusedLabelColor = PrimaryPurple,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = PrimaryPurple
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
             when {
                 isSearching -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -164,7 +129,7 @@ fun SearchScreen(
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp),
+                        contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(results, key = { it.id }) { product ->
@@ -175,6 +140,117 @@ fun SearchScreen(
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchScreenTopBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onBack: () -> Unit,
+    onClear: () -> Unit,
+    onSubmit: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = Color(0xFF050506),
+        contentColor = Color.White,
+        shadowElevation = 12.dp
+    ) {
+        Column(modifier = Modifier.statusBarsPadding()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = Color.White
+                    )
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    color = Color(0xFF111118),
+                    shape = RoundedCornerShape(18.dp),
+                    tonalElevation = 8.dp,
+                    shadowElevation = 8.dp
+                ) {
+                    TextField(
+                        value = query,
+                        onValueChange = onQueryChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        placeholder = {
+                            Text(
+                                text = "Buscar productos...",
+                                color = Color.White.copy(alpha = 0.7f),
+                                fontSize = 15.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Buscar",
+                                tint = Color.White.copy(alpha = 0.85f)
+                            )
+                        },
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { /* TODO: voice search */ }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Mic,
+                                        contentDescription = "Búsqueda por voz",
+                                        tint = Color.White.copy(alpha = 0.8f)
+                                    )
+                                }
+                                if (query.isNotBlank()) {
+                                    IconButton(onClick = onClear) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = "Limpiar búsqueda",
+                                            tint = Color.White.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            focusManager.clearFocus()
+                            onSubmit()
+                        }),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            cursorColor = PrimaryPurple,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(18.dp)
+                    )
                 }
             }
         }

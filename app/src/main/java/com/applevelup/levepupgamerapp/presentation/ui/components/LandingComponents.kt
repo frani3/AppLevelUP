@@ -9,7 +9,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -120,13 +120,13 @@ fun LandingPageTopBar(
     onSearchQueryChange: (String) -> Unit,
     searchActive: Boolean,
     onSearchActiveChange: (Boolean) -> Unit,
+    onSearchSubmit: (String) -> Unit,
     notificationCount: Int,
     onNotificationClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    val interactionSource = remember { MutableInteractionSource() }
 
     val searchShape by animateDpAsState(
         targetValue = if (searchActive) 18.dp else 26.dp,
@@ -165,35 +165,27 @@ fun LandingPageTopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                val baseModifier = Modifier
-                    .weight(1f)
-                    .height(searchHeight)
-
                 Surface(
-                    modifier = baseModifier,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(searchHeight),
                     color = Color(0xFF111118),
                     shape = RoundedCornerShape(searchShape),
                     tonalElevation = searchElevation,
                     shadowElevation = searchElevation
                 ) {
-                    val textFieldModifier = if (searchActive) {
-                        Modifier
-                            .fillMaxSize()
-                            .focusRequester(focusRequester)
-                    } else {
-                        Modifier
-                            .fillMaxSize()
-                            .focusRequester(focusRequester)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null
-                            ) { onSearchActiveChange(true) }
-                    }
-
                     TextField(
                         value = searchQuery,
                         onValueChange = onSearchQueryChange,
-                        modifier = textFieldModifier,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .focusRequester(focusRequester)
+                            .onFocusChanged { state ->
+                                when {
+                                    state.isFocused && !searchActive -> onSearchActiveChange(true)
+                                    !state.isFocused && searchActive -> onSearchActiveChange(false)
+                                }
+                            },
                         placeholder = {
                             Text(
                                 text = "Buscar productos...",
@@ -232,10 +224,14 @@ fun LandingPageTopBar(
                             }
                         },
                         singleLine = true,
-                        readOnly = !searchActive,
+                        readOnly = false,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = {
                             focusManager.clearFocus()
+                            val normalized = searchQuery.trim()
+                            if (normalized.isNotEmpty()) {
+                                onSearchSubmit(normalized)
+                            }
                         }),
                         colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,

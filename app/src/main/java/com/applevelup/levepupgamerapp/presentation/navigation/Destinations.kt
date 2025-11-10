@@ -25,6 +25,8 @@ sealed class Destinations(val route: String) {
         fun create(productId: Int) = "product_detail/$productId"
     }
 
+    data object Favorites : Destinations("favoritos")
+
     // Usuario
     data object Profile : Destinations("perfil")
     data object Account : Destinations("gestionar_cuenta")
