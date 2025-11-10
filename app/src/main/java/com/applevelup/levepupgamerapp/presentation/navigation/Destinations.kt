@@ -8,6 +8,7 @@ sealed class Destinations(val route: String) {
     data object Splash : Destinations("splash")
     data object Login : Destinations("login")
     data object Register : Destinations("registro")
+    data object ForgotPassword : Destinations("forgot_password")
 
     // Home / catálogo
     data object Landing : Destinations("landing_page")

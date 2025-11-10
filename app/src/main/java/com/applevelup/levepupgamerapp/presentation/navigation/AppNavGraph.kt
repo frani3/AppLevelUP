@@ -50,6 +50,13 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             popEnterTransition = { backwardEnter() },
             popExitTransition = { backwardExit() }
         ) { RegistroScreen(navController) }
+        composable(
+            route = Destinations.ForgotPassword.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { ForgotPasswordScreen(navController) }
 
         // Home / catálogo
         composable(

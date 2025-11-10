@@ -48,9 +48,13 @@ class LandingViewModel(
         viewModelScope.launch {
             while (true) {
                 delay(5000)
-                _uiState.update {
-                    val next = (it.currentPage + 1) % it.promotions.size
-                    it.copy(currentPage = next)
+                _uiState.update { current ->
+                    if (current.promotions.isEmpty()) {
+                        current
+                    } else {
+                        val next = (current.currentPage + 1) % current.promotions.size
+                        current.copy(currentPage = next)
+                    }
                 }
             }
         }
