@@ -1,5 +1,13 @@
 package com.applevelup.levepupgamerapp.presentation.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,15 +44,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.ui.components.ProductListItem
@@ -53,6 +64,8 @@ import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.viewmodel.SearchEvent
 import com.applevelup.levepupgamerapp.presentation.viewmodel.SearchViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.SearchViewModelFactory
+import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,11 +76,72 @@ fun SearchScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val query = state.query
     val isSearching = state.isSearching
     val errorMessage = state.errorMessage
     val results = state.results
     val hasSearched = state.hasSearched
+
+    val speechLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spokenText = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+                ?.trim()
+            if (!spokenText.isNullOrEmpty()) {
+                viewModel.onQueryChange(spokenText)
+                viewModel.search()
+            } else {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("No se detectó ninguna voz. Intenta nuevamente.")
+                }
+            }
+        } else if (result.resultCode != Activity.RESULT_CANCELED) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("No se pudo completar la búsqueda por voz.")
+            }
+        }
+    }
+
+    val launchVoiceRecognition = {
+        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("La búsqueda por voz no está disponible en este dispositivo.")
+            }
+        } else {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Habla ahora para buscar productos")
+            }
+            speechLauncher.launch(intent)
+        }
+        Unit
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            launchVoiceRecognition()
+        } else {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Permiso de micrófono denegado. No es posible usar búsqueda por voz.")
+            }
+        }
+    }
+
+    val onVoiceSearch = {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            launchVoiceRecognition()
+        } else {
+            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     LaunchedEffect(initialQuery) {
         viewModel.setInitialQuery(initialQuery)
@@ -88,7 +162,8 @@ fun SearchScreen(
                 onQueryChange = viewModel::onQueryChange,
                 onBack = { navController.popBackStack() },
                 onClear = { viewModel.onQueryChange("") },
-                onSubmit = viewModel::search
+                onSubmit = viewModel::search,
+                onVoiceSearch = onVoiceSearch
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -153,6 +228,7 @@ private fun SearchScreenTopBar(
     onBack: () -> Unit,
     onClear: () -> Unit,
     onSubmit: () -> Unit,
+    onVoiceSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -215,7 +291,7 @@ private fun SearchScreenTopBar(
                         },
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { /* TODO: voice search */ }) {
+                                IconButton(onClick = onVoiceSearch) {
                                     Icon(
                                         imageVector = Icons.Filled.Mic,
                                         contentDescription = "Búsqueda por voz",

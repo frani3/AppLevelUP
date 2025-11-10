@@ -121,6 +121,7 @@ fun LandingPageTopBar(
     searchActive: Boolean,
     onSearchActiveChange: (Boolean) -> Unit,
     onSearchSubmit: (String) -> Unit,
+    onVoiceSearch: () -> Unit,
     notificationCount: Int,
     onNotificationClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -202,7 +203,7 @@ fun LandingPageTopBar(
                         },
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(onClick = { /* TODO voice search */ }) {
+                                IconButton(onClick = onVoiceSearch) {
                                     Icon(
                                         imageVector = Icons.Filled.Mic,
                                         contentDescription = "Búsqueda por voz",
