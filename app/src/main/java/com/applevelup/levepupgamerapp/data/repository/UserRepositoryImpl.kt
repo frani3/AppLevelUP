@@ -103,15 +103,35 @@ class UserRepositoryImpl(
     }
 
     override suspend fun register(
-        fullName: String,
+        firstName: String,
+        lastName: String,
+        run: String,
         email: String,
         password: String,
         birthDate: String,
-        address: String
+        region: String,
+        comuna: String,
+        address: String,
+        referralCode: String?
     ): User {
         val normalizedEmail = email.trim().lowercase()
         if (normalizedEmail.isBlank()) {
             throw IllegalArgumentException("Email inválido")
+        }
+
+        val cleanedFirstName = firstName.trim()
+        if (cleanedFirstName.isBlank()) {
+            throw IllegalArgumentException("El nombre es obligatorio")
+        }
+
+        val cleanedLastName = lastName.trim()
+        if (cleanedLastName.isBlank()) {
+            throw IllegalArgumentException("Los apellidos son obligatorios")
+        }
+
+        val sanitizedRun = sanitizeRun(run)
+        if (!isValidRun(sanitizedRun)) {
+            throw IllegalArgumentException("RUN inválido")
         }
 
         val sanitizedBirthDate = birthDate.trim()
@@ -123,6 +143,16 @@ class UserRepositoryImpl(
             throw IllegalArgumentException("La edad debe estar entre $MIN_AGE y $MAX_AGE años")
         }
 
+        val sanitizedRegion = region.trim()
+        if (sanitizedRegion.isBlank()) {
+            throw IllegalArgumentException("La región es obligatoria")
+        }
+
+        val sanitizedComuna = comuna.trim()
+        if (sanitizedComuna.isBlank()) {
+            throw IllegalArgumentException("La comuna es obligatoria")
+        }
+
         val sanitizedAddress = address.trim()
         if (sanitizedAddress.isBlank()) {
             throw IllegalArgumentException("La dirección es obligatoria")
@@ -132,20 +162,24 @@ class UserRepositoryImpl(
         if (existingUser != null) {
             throw EmailAlreadyInUseException(normalizedEmail)
         }
-
         val hashedPassword = SecurityUtils.hashPassword(password)
-        val trimmedFullName = fullName.trim()
-        val (firstName, lastName) = splitName(trimmedFullName)
+        val trimmedFullName = listOf(cleanedFirstName, cleanedLastName)
+            .filter { it.isNotBlank() }
+            .joinToString(" ")
         val entity = UserEntity(
             fullName = trimmedFullName,
-            firstName = firstName,
-            lastName = lastName,
+            firstName = cleanedFirstName,
+            lastName = cleanedLastName,
             email = normalizedEmail,
             passwordHash = hashedPassword,
             avatarRes = R.drawable.avatar_placeholder,
             profileRole = "Cliente",
             birthDate = sanitizedBirthDate,
+            run = sanitizedRun,
+            region = sanitizedRegion,
+            comuna = sanitizedComuna,
             address = sanitizedAddress,
+            referralCode = referralCode?.trim().takeUnless { it.isNullOrBlank() },
             hasLifetimeDiscount = hasDuocLifetimeBenefit(normalizedEmail),
             isSuperAdmin = false,
             isSystem = false
@@ -218,6 +252,41 @@ class UserRepositoryImpl(
         val first = parts.getOrNull(0)?.takeIf { it.isNotBlank() }
         val last = parts.getOrNull(1)?.takeIf { it.isNotBlank() }
         return first to last
+    }
+
+    private fun sanitizeRun(raw: String): String {
+        val cleaned = raw.uppercase(Locale.getDefault())
+            .replace(".", "")
+            .replace(" ", "")
+            .replace("-", "")
+        if (cleaned.length < 2) return ""
+        val numberPart = cleaned.dropLast(1)
+        val checkDigit = cleaned.last()
+        return "$numberPart-$checkDigit"
+    }
+
+    private fun isValidRun(run: String): Boolean {
+        if (!run.matches(Regex("^\\d{7,8}-[0-9K]$"))) return false
+        val numberPart = run.substringBefore('-')
+        val providedDigit = run.substringAfter('-')
+        val expectedDigit = calculateRunCheckDigit(numberPart)
+        return expectedDigit.equals(providedDigit, ignoreCase = true)
+    }
+
+    private fun calculateRunCheckDigit(numberPart: String): String {
+        var multiplier = 2
+        var sum = 0
+        for (digitChar in numberPart.reversed()) {
+            val digit = digitChar.digitToIntOrNull() ?: return ""
+            sum += digit * multiplier
+            multiplier = if (multiplier == 7) 2 else multiplier + 1
+        }
+        val remainder = 11 - (sum % 11)
+        return when (remainder) {
+            11 -> "0"
+            10 -> "K"
+            else -> remainder.toString()
+        }
     }
 
     private fun parseBirthDate(raw: String): Calendar? {

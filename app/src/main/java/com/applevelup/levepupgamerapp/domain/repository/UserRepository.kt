@@ -13,11 +13,16 @@ interface UserRepository {
     suspend fun findUserByEmail(email: String): User?
     suspend fun authenticate(email: String, password: String): User?
     suspend fun register(
-        fullName: String,
+        firstName: String,
+        lastName: String,
+        run: String,
         email: String,
         password: String,
         birthDate: String,
-        address: String
+        region: String,
+        comuna: String,
+        address: String,
+        referralCode: String?
     ): User
     suspend fun logout()
     suspend fun updateUser(fullName: String, email: String, newPassword: String?)

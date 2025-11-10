@@ -242,6 +242,7 @@ object LocalSeedData {
         comuna: String,
         direccion: String,
         descuentoVitalicio: Boolean,
+        referral: String? = null,
         isSystem: Boolean = false
     ): UserEntity {
         val cleanedFirstName = nombre.trim()
@@ -267,6 +268,7 @@ object LocalSeedData {
             region = region.trim().ifBlank { null },
             comuna = comuna.trim().ifBlank { null },
             address = direccion.trim().ifBlank { null },
+            referralCode = referral?.trim().takeUnless { it.isNullOrBlank() },
             hasLifetimeDiscount = descuentoVitalicio,
             isSuperAdmin = isSystem || roleIsAdmin,
             isSystem = isSystem

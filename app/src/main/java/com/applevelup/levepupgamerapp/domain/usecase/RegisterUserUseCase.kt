@@ -17,14 +17,30 @@ class RegisterUserUseCase(
 	}
 
 	suspend operator fun invoke(
-		fullName: String,
+		firstName: String,
+		lastName: String,
+		run: String,
 		email: String,
 		password: String,
 		birthDate: String,
-		address: String
+		region: String,
+		comuna: String,
+		address: String,
+		referralCode: String?
 	): Result {
 		return try {
-			val user = userRepository.register(fullName, email, password, birthDate, address)
+			val user = userRepository.register(
+				firstName = firstName,
+				lastName = lastName,
+				run = run,
+				email = email,
+				password = password,
+				birthDate = birthDate,
+				region = region,
+				comuna = comuna,
+				address = address,
+				referralCode = referralCode
+			)
 			sessionRepository.saveSession(
 				SessionState(
 					isLoggedIn = true,

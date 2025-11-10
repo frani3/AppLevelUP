@@ -88,8 +88,10 @@ fun CardTypeIcon(cardNumber: String) {
         else -> null
     }
 
-    if (iconRes != null) {
-        Image(painter = painterResource(iconRes), contentDescription = cardType.name, modifier = Modifier.height(24.dp))
+    val painter = iconRes?.let { runCatching { painterResource(it) }.getOrNull() }
+
+    if (painter != null) {
+        Image(painter = painter, contentDescription = cardType.name, modifier = Modifier.height(24.dp))
     } else {
         Icon(Icons.Default.CreditCard, contentDescription = "Tarjeta", tint = Color.Gray)
     }

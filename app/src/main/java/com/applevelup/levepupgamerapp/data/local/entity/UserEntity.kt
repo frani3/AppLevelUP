@@ -26,6 +26,7 @@ data class UserEntity(
 	@ColumnInfo(name = "region") val region: String? = null,
 	@ColumnInfo(name = "comuna") val comuna: String? = null,
 	@ColumnInfo(name = "address") val address: String? = null,
+	@ColumnInfo(name = "referral_code") val referralCode: String? = null,
 	@ColumnInfo(name = "lifetime_discount") val hasLifetimeDiscount: Boolean = false,
 	@ColumnInfo(name = "is_super_admin") val isSuperAdmin: Boolean,
 	@ColumnInfo(name = "is_system") val isSystem: Boolean = false,

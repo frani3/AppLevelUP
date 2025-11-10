@@ -17,12 +17,17 @@ import java.util.Calendar
 import java.util.Locale
 
 data class RegistroUiState(
-    val username: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
     val email: String = "",
     val password: String = "",
     val confirmPassword: String = "",
     val birthDate: String = "",
     val address: String = "",
+    val run: String = "",
+    val region: String = "",
+    val comuna: String = "",
+    val referralCode: String = "",
     val termsAccepted: Boolean = false,
     val isLoading: Boolean = false,
     val isRegisterSuccessful: Boolean = false,
@@ -32,12 +37,16 @@ data class RegistroUiState(
 )
 
 data class FormErrors(
-    val usernameError: String? = null,
+    val firstNameError: String? = null,
+    val lastNameError: String? = null,
     val emailError: String? = null,
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
     val birthDateError: String? = null,
     val addressError: String? = null,
+    val runError: String? = null,
+    val regionError: String? = null,
+    val comunaError: String? = null,
     val termsError: String? = null
 )
 
@@ -53,8 +62,12 @@ class RegistroViewModel(
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = _uiState
 
-    fun onUsernameChange(value: String) {
-        _uiState.update { it.copy(username = value) }
+    fun onFirstNameChange(value: String) {
+        _uiState.update { it.copy(firstName = value) }
+    }
+
+    fun onLastNameChange(value: String) {
+        _uiState.update { it.copy(lastName = value) }
     }
 
     fun onEmailChange(value: String) {
@@ -82,6 +95,27 @@ class RegistroViewModel(
         _uiState.update { it.copy(address = value) }
     }
 
+    fun onRunChange(value: String) {
+        _uiState.update { it.copy(run = value) }
+    }
+
+    fun onRegionChange(value: String) {
+        _uiState.update {
+            it.copy(
+                region = value,
+                comuna = if (it.comuna.isBlank() || it.region != value) "" else it.comuna
+            )
+        }
+    }
+
+    fun onComunaChange(value: String) {
+        _uiState.update { it.copy(comuna = value) }
+    }
+
+    fun onReferralCodeChange(value: String) {
+        _uiState.update { it.copy(referralCode = value) }
+    }
+
     fun onTermsChange(value: Boolean) {
         _uiState.update { it.copy(termsAccepted = value) }
     }
@@ -105,11 +139,16 @@ class RegistroViewModel(
             }
 
             val result = registerUserUseCase(
-                fullName = state.username.trim(),
+                firstName = state.firstName.trim(),
+                lastName = state.lastName.trim(),
+                run = state.run.trim(),
                 email = state.email.trim(),
                 password = state.password,
                 birthDate = state.birthDate.trim(),
-                address = state.address.trim()
+                region = state.region.trim(),
+                comuna = state.comuna.trim(),
+                address = state.address.trim(),
+                referralCode = state.referralCode.trim().takeIf { it.isNotBlank() }
             )
 
             when (result) {
@@ -142,15 +181,20 @@ class RegistroViewModel(
     }
 
     private fun validateForm(state: RegistroUiState): FormErrors {
-        var usernameError: String? = null
+        var firstNameError: String? = null
+        var lastNameError: String? = null
         var emailError: String? = null
         var passwordError: String? = null
         var confirmPasswordError: String? = null
         var birthDateError: String? = null
         var addressError: String? = null
+        var runError: String? = null
+        var regionError: String? = null
+        var comunaError: String? = null
         var termsError: String? = null
 
-        if (state.username.isBlank()) usernameError = "El nombre es obligatorio"
+        if (state.firstName.isBlank()) firstNameError = "El nombre es obligatorio"
+        if (state.lastName.isBlank()) lastNameError = "Los apellidos son obligatorios"
         if (state.email.isBlank() || !state.email.contains("@")) emailError = "Correo inválido"
         if (state.password.length < 6) passwordError = "Contraseña muy corta"
         if (state.password != state.confirmPassword) confirmPasswordError = "Las contraseñas no coinciden"
@@ -167,16 +211,27 @@ class RegistroViewModel(
                 }
             }
         }
+        if (state.run.isBlank()) {
+            runError = "El RUN es obligatorio"
+        } else if (!isValidRun(state.run)) {
+            runError = "RUN inválido"
+        }
+        if (state.region.isBlank()) regionError = "Selecciona una región"
+        if (state.comuna.isBlank()) comunaError = "Selecciona una comuna"
         if (state.address.isBlank()) addressError = "La dirección es obligatoria"
         if (!state.termsAccepted) termsError = "Debes aceptar los términos"
 
         return FormErrors(
-            usernameError = usernameError,
+            firstNameError = firstNameError,
+            lastNameError = lastNameError,
             emailError = emailError,
             passwordError = passwordError,
             confirmPasswordError = confirmPasswordError,
             birthDateError = birthDateError,
             addressError = addressError,
+            runError = runError,
+            regionError = regionError,
+            comunaError = comunaError,
             termsError = termsError
         )
     }
@@ -208,6 +263,43 @@ class RegistroViewModel(
         if (!normalized.contains("@")) return false
         val domain = normalized.substringAfter("@")
         return domain.contains("duoc")
+    }
+
+    private fun isValidRun(raw: String): Boolean {
+        val sanitized = sanitizeRun(raw) ?: return false
+        if (!sanitized.matches(Regex("^\\d{7,8}-[0-9K]$"))) return false
+        val numberPart = sanitized.substringBefore('-')
+        val expectedDigit = calculateRunCheckDigit(numberPart)
+        val providedDigit = sanitized.substringAfter('-')
+        return expectedDigit.equals(providedDigit, ignoreCase = true)
+    }
+
+    private fun sanitizeRun(raw: String): String? {
+        val cleaned = raw.uppercase(Locale.getDefault())
+            .replace(".", "")
+            .replace(" ", "")
+            .replace("-", "")
+        if (cleaned.length < 2) return null
+        val numberPart = cleaned.dropLast(1)
+        if (numberPart.isEmpty() || !numberPart.all { it.isDigit() }) return null
+        val checkDigit = cleaned.last()
+        return "$numberPart-$checkDigit"
+    }
+
+    private fun calculateRunCheckDigit(numberPart: String): String {
+        var multiplier = 2
+        var sum = 0
+        for (digitChar in numberPart.reversed()) {
+            val digit = digitChar.digitToIntOrNull() ?: return ""
+            sum += digit * multiplier
+            multiplier = if (multiplier == 7) 2 else multiplier + 1
+        }
+        val remainder = 11 - (sum % 11)
+        return when (remainder) {
+            11 -> "0"
+            10 -> "K"
+            else -> remainder.toString()
+        }
     }
 
     companion object {
