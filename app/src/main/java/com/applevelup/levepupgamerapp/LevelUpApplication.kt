@@ -2,6 +2,7 @@ package com.applevelup.levepupgamerapp
 
 import android.app.Application
 import com.applevelup.levepupgamerapp.data.local.AppDatabase
+import com.applevelup.levepupgamerapp.data.prefs.FavoritePreferencesDataSource
 import com.applevelup.levepupgamerapp.data.prefs.NotificationPreferencesDataSource
 import com.applevelup.levepupgamerapp.data.prefs.SessionPreferencesDataSource
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,7 @@ class LevelUpApplication : Application() {
     val appDatabase: AppDatabase by lazy { AppDatabase.build(this) }
     val sessionPreferencesDataSource: SessionPreferencesDataSource by lazy { SessionPreferencesDataSource(this) }
     val notificationPreferencesDataSource: NotificationPreferencesDataSource by lazy { NotificationPreferencesDataSource(this) }
+    val favoritePreferencesDataSource: FavoritePreferencesDataSource by lazy { FavoritePreferencesDataSource(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -40,5 +42,8 @@ class LevelUpApplication : Application() {
 
         val notificationPreferences: NotificationPreferencesDataSource
             get() = instance.notificationPreferencesDataSource
+
+        val favoritePreferences: FavoritePreferencesDataSource
+            get() = instance.favoritePreferencesDataSource
     }
 }

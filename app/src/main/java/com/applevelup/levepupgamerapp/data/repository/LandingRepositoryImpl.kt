@@ -8,8 +8,8 @@ class LandingRepositoryImpl : LandingRepository {
 
     override fun getPromotions() = listOf(
         Promotion("OFERTAS EN JUEGOS", "Renueva tu ludoteca esta semana", R.drawable.promo_banner_1),
-        Promotion("ACCESORIOS DESTACADOS", "Setup pro con envíos en 24h", R.drawable.promo_banner_1),
-        Promotion("ESCRITORIO GAMER", "Sillas y PC listos para tu stream", R.drawable.promo_banner_1)
+        Promotion("ACCESORIOS DESTACADOS", "Setup pro con envíos en 24h", R.drawable.promo_banner_2),
+        Promotion("ESCRITORIO GAMER", "Sillas y PC listos para tu stream", R.drawable.promo_banner_3)
     )
 
     override fun getCategories() = listOf(
