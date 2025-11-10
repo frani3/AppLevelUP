@@ -57,7 +57,7 @@ class AddPaymentViewModel(
         _uiState.update { it.copy(isValid = isValid) }
     }
 
-    fun saveCard(): Boolean {
+    suspend fun saveCard(): Boolean {
         val s = _uiState.value
         if (!s.isValid) {
             _uiState.update { it.copy(showError = true) }

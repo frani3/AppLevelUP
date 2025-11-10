@@ -158,7 +158,7 @@ class RegistroViewModel(
                     } else {
                         addressRepository.clearAll()
                     }
-                    paymentRepository.reset()
+                    paymentRepository.clearPaymentMethods()
                     _uiState.update {
                         it.copy(
                             isLoading = false,

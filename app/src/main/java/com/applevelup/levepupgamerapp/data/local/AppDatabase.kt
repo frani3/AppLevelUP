@@ -5,16 +5,18 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.applevelup.levepupgamerapp.data.local.dao.CartDao
+import com.applevelup.levepupgamerapp.data.local.dao.PaymentMethodDao
 import com.applevelup.levepupgamerapp.data.local.dao.ProductDao
 import com.applevelup.levepupgamerapp.data.local.dao.UserDao
 import com.applevelup.levepupgamerapp.data.local.entity.CartItemEntity
+import com.applevelup.levepupgamerapp.data.local.entity.PaymentMethodEntity
 import com.applevelup.levepupgamerapp.data.local.entity.ProductEntity
 import com.applevelup.levepupgamerapp.data.local.entity.UserEntity
 import com.applevelup.levepupgamerapp.data.local.seed.LocalSeedData
 
 @Database(
-	entities = [ProductEntity::class, CartItemEntity::class, UserEntity::class],
-	version = 4,
+	entities = [ProductEntity::class, CartItemEntity::class, UserEntity::class, PaymentMethodEntity::class],
+	version = 5,
 	exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -22,6 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
 	abstract fun productDao(): ProductDao
 	abstract fun cartDao(): CartDao
 	abstract fun userDao(): UserDao
+	abstract fun paymentMethodDao(): PaymentMethodDao
 
 	suspend fun seed() {
 		val productDao = productDao()

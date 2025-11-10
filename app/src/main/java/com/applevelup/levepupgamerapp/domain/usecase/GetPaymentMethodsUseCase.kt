@@ -4,5 +4,5 @@ import com.applevelup.levepupgamerapp.domain.model.PaymentMethod
 import com.applevelup.levepupgamerapp.domain.repository.PaymentRepository
 
 class GetPaymentMethodsUseCase(private val repo: PaymentRepository) {
-    operator fun invoke(): List<PaymentMethod> = repo.getPaymentMethods()
+    suspend operator fun invoke(): List<PaymentMethod> = repo.getPaymentMethods()
 }

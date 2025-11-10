@@ -4,8 +4,9 @@ import com.applevelup.levepupgamerapp.domain.model.CardType
 import com.applevelup.levepupgamerapp.domain.model.PaymentMethod
 import com.applevelup.levepupgamerapp.domain.repository.PaymentRepository
 
+
 class AddPaymentMethodUseCase(private val repo: PaymentRepository) {
-    operator fun invoke(
+    suspend operator fun invoke(
         name: String,
         number: String,
         expiry: String
@@ -18,13 +19,12 @@ class AddPaymentMethodUseCase(private val repo: PaymentRepository) {
 
         val lastFour = number.takeLast(4)
         val method = PaymentMethod(
-            id = (100..999).random(),
+            id = 0,
             cardType = cardType,
             lastFourDigits = lastFour,
             expiryDate = expiry,
             isDefault = false
         )
-        repo.addPaymentMethod(method)
-        return method
+        return repo.addPaymentMethod(method)
     }
 }

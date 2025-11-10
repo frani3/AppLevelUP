@@ -17,6 +17,7 @@ import com.applevelup.levepupgamerapp.presentation.ui.components.PaymentForm
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.viewmodel.AddPaymentViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +26,7 @@ fun AddPaymentMethodScreen(
     viewModel: AddPaymentViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -59,8 +61,10 @@ fun AddPaymentMethodScreen(
                 Spacer(Modifier.height(32.dp))
                 Button(
                     onClick = {
-                        if (viewModel.saveCard()) {
-                            navController.popBackStack()
+                        coroutineScope.launch {
+                            if (viewModel.saveCard()) {
+                                navController.popBackStack()
+                            }
                         }
                     },
                     enabled = state.isValid,

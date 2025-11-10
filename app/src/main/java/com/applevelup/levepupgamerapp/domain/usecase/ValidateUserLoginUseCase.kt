@@ -54,7 +54,7 @@ class ValidateUserLoginUseCase(
 		} else {
 			addressRepository.clearAll()
 		}
-		paymentRepository.reset()
+		paymentRepository.clearPaymentMethods()
 
 		return Result.Success
 	}

@@ -3,9 +3,9 @@ package com.applevelup.levepupgamerapp.domain.repository
 import com.applevelup.levepupgamerapp.domain.model.PaymentMethod
 
 interface PaymentRepository {
-    fun getPaymentMethods(): List<PaymentMethod>
-    fun deletePaymentMethod(id: Int)
-    fun addPaymentMethod(method: PaymentMethod)
-    fun setDefaultPaymentMethod(id: Int)
-
+    suspend fun getPaymentMethods(): List<PaymentMethod>
+    suspend fun deletePaymentMethod(id: Int)
+    suspend fun addPaymentMethod(method: PaymentMethod): PaymentMethod
+    suspend fun setDefaultPaymentMethod(id: Int)
+    suspend fun clearPaymentMethods()
 }

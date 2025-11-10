@@ -100,12 +100,42 @@ fun CardTypeIcon(cardNumber: String) {
 private class CardNumberVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val trimmed = text.text.take(16)
-        val spaced = trimmed.chunked(4).joinToString(" ")
-        val offset = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int) = offset + offset / 4
-            override fun transformedToOriginal(offset: Int) = offset - offset / 5
+        val builder = StringBuilder()
+        val originalToTransformed = IntArray(trimmed.length + 1)
+
+        trimmed.forEachIndexed { index, char ->
+            originalToTransformed[index] = builder.length
+            builder.append(char)
+            val isGroupBoundary = (index + 1) % 4 == 0 && index != trimmed.lastIndex
+            if (isGroupBoundary) {
+                builder.append(' ')
+            }
         }
-        return TransformedText(AnnotatedString(spaced), offset)
+        originalToTransformed[trimmed.length] = builder.length
+
+        val transformedToOriginal = IntArray(builder.length + 1)
+        var digitsSeen = 0
+        for (i in 0 until builder.length) {
+            transformedToOriginal[i] = digitsSeen
+            if (builder[i] != ' ') {
+                digitsSeen++
+            }
+        }
+        transformedToOriginal[builder.length] = digitsSeen
+
+        val offsetMapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                val safeOffset = offset.coerceIn(0, trimmed.length)
+                return originalToTransformed[safeOffset]
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                val safeOffset = offset.coerceIn(0, builder.length)
+                return transformedToOriginal[safeOffset]
+            }
+        }
+
+        return TransformedText(AnnotatedString(builder.toString()), offsetMapping)
     }
 }
 
