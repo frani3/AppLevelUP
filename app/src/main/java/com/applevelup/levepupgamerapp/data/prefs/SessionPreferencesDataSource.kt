@@ -43,7 +43,9 @@ class SessionPreferencesDataSource(context: Context) {
                     userId = null,
                     email = superAdmin.email,
                     fullName = null,
-                    rememberMe = true
+                    rememberMe = true,
+                    profileRole = superAdmin.profileRole,
+                    isSuperAdmin = superAdmin.isSuperAdmin
                 )
             }
             if (!seeded) {
@@ -52,7 +54,9 @@ class SessionPreferencesDataSource(context: Context) {
                     userId = null,
                     email = superAdmin.email,
                     fullName = null,
-                    rememberMe = true
+                    rememberMe = true,
+                    profileRole = superAdmin.profileRole,
+                    isSuperAdmin = superAdmin.isSuperAdmin
                 )
             }
 
@@ -61,7 +65,9 @@ class SessionPreferencesDataSource(context: Context) {
                 userId = preferences[KEY_USER_ID],
                 email = preferences[KEY_EMAIL],
                 fullName = preferences[KEY_FULL_NAME],
-                rememberMe = preferences[KEY_REMEMBER_ME] ?: false
+                rememberMe = preferences[KEY_REMEMBER_ME] ?: false,
+                profileRole = preferences[KEY_PROFILE_ROLE],
+                isSuperAdmin = preferences[KEY_IS_SUPER_ADMIN] ?: false
             )
         }
 
@@ -76,6 +82,12 @@ class SessionPreferencesDataSource(context: Context) {
             preferences[KEY_EMAIL] = superAdmin.email
             preferences.remove(KEY_FULL_NAME)
             preferences[KEY_REMEMBER_ME] = true
+            if (superAdmin.profileRole.isNullOrBlank()) {
+                preferences.remove(KEY_PROFILE_ROLE)
+            } else {
+                preferences[KEY_PROFILE_ROLE] = superAdmin.profileRole
+            }
+            preferences[KEY_IS_SUPER_ADMIN] = superAdmin.isSuperAdmin
         }
     }
 
@@ -104,6 +116,12 @@ class SessionPreferencesDataSource(context: Context) {
             }
 
             preferences[KEY_REMEMBER_ME] = state.rememberMe
+            if (state.profileRole.isNullOrBlank()) {
+                preferences.remove(KEY_PROFILE_ROLE)
+            } else {
+                preferences[KEY_PROFILE_ROLE] = state.profileRole
+            }
+            preferences[KEY_IS_SUPER_ADMIN] = state.isSuperAdmin
         }
     }
 
@@ -120,13 +138,15 @@ class SessionPreferencesDataSource(context: Context) {
                 userId = null,
                 email = if (current.rememberMe) current.email else null,
                 fullName = null,
-                rememberMe = current.rememberMe
+                rememberMe = current.rememberMe,
+                profileRole = null,
+                isSuperAdmin = false
             )
         )
     }
 
     companion object {
-        private const val CURRENT_VERSION = 2
+        private const val CURRENT_VERSION = 3
         private val KEY_SEEDED = booleanPreferencesKey("seeded")
         private val KEY_LOGGED_IN = booleanPreferencesKey("logged_in")
         private val KEY_USER_ID = longPreferencesKey("user_id")
@@ -134,5 +154,7 @@ class SessionPreferencesDataSource(context: Context) {
         private val KEY_FULL_NAME = stringPreferencesKey("full_name")
         private val KEY_REMEMBER_ME = booleanPreferencesKey("remember_me")
         private val KEY_VERSION = intPreferencesKey("prefs_version")
+        private val KEY_PROFILE_ROLE = stringPreferencesKey("profile_role")
+        private val KEY_IS_SUPER_ADMIN = booleanPreferencesKey("is_super_admin")
     }
 }

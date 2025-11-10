@@ -43,12 +43,19 @@ class ValidateUserLoginUseCase(
 				userId = authenticatedUser.id,
 				email = if (rememberMe) authenticatedUser.email else null,
 				fullName = authenticatedUser.fullName,
-				rememberMe = rememberMe
+				rememberMe = rememberMe,
+				profileRole = authenticatedUser.profileRole,
+				isSuperAdmin = authenticatedUser.isSuperAdmin
 			)
 		)
 
 		val profile = userRepository.getUserProfile()
 		val primaryAddress = profile?.address?.trim().orEmpty()
+		if (profile != null) {
+			sessionRepository.updateSession { state ->
+				state.copy(profileRole = profile.profileRole ?: state.profileRole)
+			}
+		}
 		if (primaryAddress.isNotEmpty()) {
 			addressRepository.setPrimaryAddress(primaryAddress)
 		} else {

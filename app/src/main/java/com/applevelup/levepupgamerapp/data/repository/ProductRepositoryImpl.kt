@@ -62,6 +62,14 @@ class ProductRepositoryImpl(
             .applyFilters(filters)
     }
 
+    override suspend fun addProduct(product: Product): Product {
+        val nextId = productDao.getMaxProductId()?.let { it + 1 } ?: 1
+        val finalProduct = if (product.id == 0) product.copy(id = nextId) else product
+        val entity = ProductMapper.toEntity(finalProduct)
+        productDao.upsertProducts(listOf(entity))
+        return ProductMapper.toDomain(entity)
+    }
+
     private suspend fun loadLocalProducts(filters: ProductFilters, query: String? = null): List<Product> {
         val entities = when {
             query != null -> productDao.searchProducts(query)

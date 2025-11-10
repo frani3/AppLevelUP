@@ -2,7 +2,6 @@ package com.applevelup.levepupgamerapp.presentation.ui.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -87,8 +85,13 @@ fun ProductDetailTopBar(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProductImageCarousel(product: Product) {
-    val images = listOf(product.imageRes, product.imageRes, product.imageRes)
-    val pagerState = rememberPagerState(pageCount = { images.size })
+    val imageSources = buildList {
+        if (!product.imageUri.isNullOrBlank()) add(ProductImagePayload(uri = product.imageUri))
+        if (!product.imageUrl.isNullOrBlank()) add(ProductImagePayload(url = product.imageUrl))
+        product.imageRes?.let { add(ProductImagePayload(res = it)) }
+    }.ifEmpty { listOf(ProductImagePayload(res = product.imageRes)) }
+
+    val pagerState = rememberPagerState(pageCount = { imageSources.size })
 
     Box(contentAlignment = Alignment.BottomCenter) {
         HorizontalPager(
@@ -97,11 +100,14 @@ fun ProductImageCarousel(product: Product) {
                 .fillMaxWidth()
                 .height(350.dp)
         ) { page ->
-            Image(
-                painter = painterResource(id = images[page]),
+            val payload = imageSources[page]
+            ProductImage(
+                imageRes = payload.res,
+                imageUrl = payload.url,
+                imageUri = payload.uri,
                 contentDescription = "Imagen del producto",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
         }
 
@@ -125,6 +131,12 @@ fun ProductImageCarousel(product: Product) {
         }
     }
 }
+
+private data class ProductImagePayload(
+    val res: Int? = null,
+    val url: String? = null,
+    val uri: String? = null
+)
 
 @Composable
 fun ProductHeader(product: Product, isFavorite: Boolean, onToggleFavorite: () -> Unit) {

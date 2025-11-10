@@ -610,11 +610,13 @@ fun ProductShowcaseRow(
                         tonalElevation = 0.dp,
                         color = Color(0xFF1E1E27)
                     ) {
-                        Image(
-                            painter = painterResource(id = product.imageRes),
+                        ProductImage(
+                            imageRes = product.imageRes,
+                            imageUrl = product.imageUrl,
+                            imageUri = product.imageUri,
                             contentDescription = product.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
                         )
                     }
 

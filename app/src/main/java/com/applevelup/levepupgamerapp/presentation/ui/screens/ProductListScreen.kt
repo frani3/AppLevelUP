@@ -42,7 +42,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.applevelup.levepupgamerapp.presentation.ui.components.EmptyProductView
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.components.LevelUpBottomNavigation
+import com.applevelup.levepupgamerapp.presentation.ui.components.MainDestination
 import com.applevelup.levepupgamerapp.presentation.ui.components.ProductFilterSheet
 import com.applevelup.levepupgamerapp.presentation.ui.components.ProductListItem
 import com.applevelup.levepupgamerapp.presentation.ui.components.mapRouteToMainDestination
@@ -54,6 +56,7 @@ import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductListEvent
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductListViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductListViewModelFactory
+import com.applevelup.levepupgamerapp.presentation.viewmodel.SessionViewModel
 import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,9 +71,26 @@ fun ProductListScreen(
     var showFilterSheet by remember { mutableStateOf(false) }
     val cartViewModel: CartViewModel = viewModel()
     val cartState by cartViewModel.uiState.collectAsState()
+    val sessionViewModel: SessionViewModel = viewModel()
+    val sessionState by sessionViewModel.sessionState.collectAsState()
     val cartCount = remember(cartState.items) { cartState.items.sumOf { it.quantity } }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val selectedDestination = mapRouteToMainDestination(backStackEntry?.destination?.route)
+    val isAdminUser = remember(sessionState) {
+        sessionState.isSuperAdmin || sessionState.profileRole?.equals("Administrador", ignoreCase = true) == true
+    }
+    val openAddProduct = remember(navController, isAdminUser) {
+        {
+            if (!isAdminUser) {
+                navController.navigateToMainDestination(MainDestination.Cart)
+            } else {
+                val currentRoute = navController.currentBackStackEntry?.destination?.route
+                if (currentRoute != Destinations.AddProduct.route) {
+                    navController.navigate(Destinations.AddProduct.route)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(categoryName) {
         viewModel.loadProducts(categoryName)
@@ -107,7 +127,9 @@ fun ProductListScreen(
                     if (destination == selectedDestination) return@LevelUpBottomNavigation
                     navController.navigateToMainDestination(destination)
                 },
-                cartBadgeCount = cartCount
+                cartBadgeCount = cartCount,
+                isAdmin = isAdminUser,
+                onCentralAction = openAddProduct
             )
         },
         containerColor = PureBlackBackground

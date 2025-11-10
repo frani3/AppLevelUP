@@ -1,6 +1,5 @@
 package com.applevelup.levepupgamerapp.presentation.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -21,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -68,13 +66,15 @@ fun ProductListItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Image(
-                painter = painterResource(id = product.imageRes),
+            ProductImage(
+                imageRes = product.imageRes,
+                imageUrl = product.imageUrl,
+                imageUri = product.imageUri,
                 contentDescription = product.name,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(110.dp)
-                    .clip(MaterialTheme.shapes.medium)
+                    .clip(MaterialTheme.shapes.medium),
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.width(16.dp))

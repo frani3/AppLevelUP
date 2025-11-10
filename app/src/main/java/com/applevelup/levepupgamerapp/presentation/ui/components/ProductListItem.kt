@@ -1,14 +1,13 @@
 package com.applevelup.levepupgamerapp.presentation.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,12 +28,15 @@ fun ProductListItem(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Image(
-                painter = painterResource(id = product.imageRes),
+            ProductImage(
+                imageRes = product.imageRes,
+                imageUrl = product.imageUrl,
+                imageUri = product.imageUri,
                 contentDescription = product.name,
                 modifier = Modifier
                     .height(120.dp)
                     .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
             )
             Spacer(Modifier.height(8.dp))
             Text(

@@ -26,6 +26,7 @@ sealed class Destinations(val route: String) {
     }
 
     data object Favorites : Destinations("favoritos")
+    data object AddProduct : Destinations("agregar_producto")
 
     // Usuario
     data object Profile : Destinations("perfil")

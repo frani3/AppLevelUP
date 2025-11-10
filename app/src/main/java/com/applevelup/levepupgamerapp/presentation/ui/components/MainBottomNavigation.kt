@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Home
@@ -62,6 +64,7 @@ data class BottomNavItem(
 fun mapRouteToMainDestination(route: String?): MainDestination = when (route) {
     Destinations.Categories.route -> MainDestination.Categories
     Destinations.Cart.route -> MainDestination.Cart
+    Destinations.AddProduct.route -> MainDestination.Cart
     Destinations.Favorites.route -> MainDestination.Favorites
     Destinations.Profile.route -> MainDestination.Profile
     else -> MainDestination.Home
@@ -91,21 +94,23 @@ fun LevelUpBottomNavigation(
     onDestinationSelected: (MainDestination) -> Unit,
     cartBadgeCount: Int,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = Color(0xFF0B0B0D)
+    backgroundColor: Color = Color(0xFF0B0B0D),
+    isAdmin: Boolean = false,
+    onCentralAction: () -> Unit = {}
 ) {
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-    val navItems = remember(cartBadgeCount) {
+    val navItems = remember(cartBadgeCount, isAdmin) {
         listOf(
             BottomNavItem(MainDestination.Home, "Inicio", Icons.Outlined.Home, Icons.Filled.Home),
             BottomNavItem(MainDestination.Categories, "Categorías", Icons.Outlined.Category, Icons.Filled.Category),
             BottomNavItem(
                 destination = MainDestination.Cart,
-                label = "Carrito",
-                outlinedIcon = Icons.Outlined.ShoppingCart,
-                filledIcon = Icons.Filled.ShoppingCart,
+                label = if (isAdmin) "Agregar" else "Carrito",
+                outlinedIcon = if (isAdmin) Icons.Outlined.AddCircle else Icons.Outlined.ShoppingCart,
+                filledIcon = if (isAdmin) Icons.Filled.AddCircle else Icons.Filled.ShoppingCart,
                 isCentral = true,
-                badgeCount = cartBadgeCount
+                badgeCount = if (isAdmin) 0 else cartBadgeCount
             ),
             BottomNavItem(MainDestination.Favorites, "Favoritos", Icons.Outlined.Favorite, Icons.Filled.Favorite),
             BottomNavItem(MainDestination.Profile, "Perfil", Icons.Outlined.Person, Icons.Filled.Person)
@@ -132,7 +137,13 @@ fun LevelUpBottomNavigation(
                             .clickable(
                                 interactionSource = interactionSource,
                                 indication = null
-                            ) { onDestinationSelected(item.destination) },
+                            ) {
+                                when {
+                                    isAdmin && item.destination == MainDestination.Cart -> onCentralAction()
+                                    item.destination == selectedDestination -> Unit
+                                    else -> onDestinationSelected(item.destination)
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Column(

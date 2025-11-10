@@ -5,5 +5,7 @@ data class SessionState(
     val userId: Long? = null,
     val email: String? = null,
     val fullName: String? = null,
-    val rememberMe: Boolean = false
+    val rememberMe: Boolean = false,
+    val profileRole: String? = null,
+    val isSuperAdmin: Boolean = false
 )

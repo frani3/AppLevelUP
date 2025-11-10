@@ -215,7 +215,7 @@ fun RegistroScreen(
                         value = state.email,
                         onValueChange = viewModel::onEmailChange,
                         label = { Text("Correo Electrónico", color = Color.LightGray) },
-                        placeholder = { Text("superadmin@levelup.cl", color = Color.Gray) },
+                        placeholder = { Text("correo@ejemplo.com", color = Color.Gray) },
                         leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color.LightGray) },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -64,6 +64,7 @@ import com.applevelup.levepupgamerapp.presentation.ui.components.navigateToMainD
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
 import com.applevelup.levepupgamerapp.presentation.viewmodel.LandingViewModel
+import com.applevelup.levepupgamerapp.presentation.viewmodel.SessionViewModel
 import java.util.Locale
 import kotlinx.coroutines.launch
 
@@ -76,9 +77,11 @@ fun LandingPageScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val sessionViewModel: SessionViewModel = viewModel()
 
     val landingState by landingViewModel.uiState.collectAsState()
     val cartState by cartViewModel.uiState.collectAsState()
+    val sessionState by sessionViewModel.sessionState.collectAsState()
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchActive by rememberSaveable { mutableStateOf(false) }
@@ -107,6 +110,9 @@ fun LandingPageScreen(
 
     val cartCount = remember(cartState.items) { cartState.items.sumOf { it.quantity } }
     val notificationCount = remember { 3 }
+    val isAdminUser = remember(sessionState) {
+        sessionState.isSuperAdmin || sessionState.profileRole?.equals("Administrador", ignoreCase = true) == true
+    }
 
     val contentAlpha by animateFloatAsState(
         targetValue = if (searchActive) 0.15f else 1f,
@@ -127,6 +133,19 @@ fun LandingPageScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val selectedDestination = remember(backStackEntry?.destination?.route) {
         mapRouteToMainDestination(backStackEntry?.destination?.route)
+    }
+
+    val openAddProduct = remember(navController, isAdminUser) {
+        {
+            if (!isAdminUser) {
+                navController.navigateToMainDestination(MainDestination.Cart)
+            } else {
+                val currentRoute = navController.currentBackStackEntry?.destination?.route
+                if (currentRoute != Destinations.AddProduct.route) {
+                    navController.navigate(Destinations.AddProduct.route)
+                }
+            }
+        }
     }
 
     BackHandler(enabled = searchActive) {
@@ -236,7 +255,9 @@ fun LandingPageScreen(
 
                     navController.navigateToMainDestination(destination)
                 },
-                cartBadgeCount = cartCount
+                cartBadgeCount = cartCount,
+                isAdmin = isAdminUser,
+                onCentralAction = openAddProduct
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

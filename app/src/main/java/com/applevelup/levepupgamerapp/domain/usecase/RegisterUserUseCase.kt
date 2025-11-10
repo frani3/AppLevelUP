@@ -47,7 +47,9 @@ class RegisterUserUseCase(
 					userId = user.id,
 					email = user.email,
 					fullName = user.fullName,
-					rememberMe = true
+					rememberMe = true,
+					profileRole = user.profileRole,
+					isSuperAdmin = user.isSuperAdmin
 				)
 			)
 			Result.Success(user)

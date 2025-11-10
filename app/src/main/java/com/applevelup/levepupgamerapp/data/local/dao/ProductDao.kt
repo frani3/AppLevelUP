@@ -33,4 +33,7 @@ interface ProductDao {
 
 	@Query("SELECT COUNT(*) FROM products")
 	suspend fun countProducts(): Int
+
+	@Query("SELECT MAX(id) FROM products")
+	suspend fun getMaxProductId(): Int?
 }

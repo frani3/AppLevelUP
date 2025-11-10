@@ -111,6 +111,16 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         }
 
         composable(
+            route = Destinations.AddProduct.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) {
+            AddProductScreen(navController)
+        }
+
+        composable(
             route = Destinations.Favorites.route,
             enterTransition = { forwardEnter() },
             exitTransition = { forwardExit() },
