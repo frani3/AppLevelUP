@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
@@ -20,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -31,8 +33,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.presentation.data.ChileanRegionsData
+import com.applevelup.levepupgamerapp.presentation.ui.components.RunVisualTransformation
 import com.applevelup.levepupgamerapp.presentation.ui.theme.*
+import com.applevelup.levepupgamerapp.presentation.viewmodel.RegistroField
 import com.applevelup.levepupgamerapp.presentation.viewmodel.RegistroViewModel
+import com.applevelup.levepupgamerapp.utils.RunUtils
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -52,6 +57,10 @@ fun RegistroScreen(
     viewModel: RegistroViewModel = viewModel ()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val runRawInput = remember(state.runBody, state.runCheckDigit, state.runHasHyphen) {
+        RunUtils.composeRawInput(state.runBody, state.runCheckDigit, state.runHasHyphen)
+    }
+    val runVisualTransformation = remember { RunVisualTransformation() }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -148,7 +157,8 @@ fun RegistroScreen(
                         label = { Text("Nombre", color = Color.LightGray) },
                         placeholder = { Text("Tu nombre", color = Color.Gray) },
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.FIRST_NAME, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next,
@@ -177,7 +187,8 @@ fun RegistroScreen(
                         label = { Text("Apellidos", color = Color.LightGray) },
                         placeholder = { Text("Tus apellidos", color = Color.Gray) },
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.LAST_NAME, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next,
@@ -207,7 +218,8 @@ fun RegistroScreen(
                         placeholder = { Text("superadmin@levelup.cl", color = Color.Gray) },
                         leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email", tint = Color.LightGray) },
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.EMAIL, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { /* foco siguiente */ }),
@@ -241,17 +253,37 @@ fun RegistroScreen(
 
                     // RUN
                     OutlinedTextField(
-                        value = state.run,
+                        value = runRawInput,
                         onValueChange = viewModel::onRunChange,
                         label = { Text("RUN", color = Color.LightGray) },
-                        placeholder = { Text("12345678-9", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("12.345.678-5", color = Color.Gray) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.RUN, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next,
-                            capitalization = KeyboardCapitalization.Characters
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
                         ),
+                        visualTransformation = runVisualTransformation,
+                        trailingIcon = {
+                            if (state.runBody.length >= RunUtils.RUN_BODY_MIN_LENGTH) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(onClick = { viewModel.setRunCheckDigit("K") }) {
+                                        Text("K", color = Color.LightGray, fontWeight = FontWeight.Bold)
+                                    }
+                                    if (state.runCheckDigit.isNotEmpty()) {
+                                        IconButton(onClick = { viewModel.clearRunCheckDigit() }) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Backspace,
+                                                contentDescription = "Eliminar dígito verificador",
+                                                tint = Color.LightGray
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
@@ -280,7 +312,8 @@ fun RegistroScreen(
                             .clickable(
                                 interactionSource = birthDateInteractionSource,
                                 indication = null
-                            ) { showDatePicker = true },
+                            ) { showDatePicker = true }
+                            .then(validateOnFocusLost(RegistroField.BIRTH_DATE, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         readOnly = true,
                         supportingText = {
@@ -533,7 +566,9 @@ fun RegistroScreen(
                         onValueChange = viewModel::onAddressChange,
                         label = { Text("Dirección principal", color = Color.LightGray) },
                         placeholder = { Text("Ej: Av. Siempre Viva 742, Springfield", color = Color.Gray) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.ADDRESS, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
@@ -565,7 +600,8 @@ fun RegistroScreen(
                         placeholder = { Text("••••••••", color = Color.Gray) },
                         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Contraseña", tint = Color.LightGray) },
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.PASSWORD, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -600,7 +636,8 @@ fun RegistroScreen(
                         placeholder = { Text("••••••••", color = Color.Gray) },
                         leadingIcon = null,
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .then(validateOnFocusLost(RegistroField.CONFIRM_PASSWORD, viewModel)),
                         shape = RoundedCornerShape(12.dp),
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
@@ -701,4 +738,18 @@ fun getTextFieldColors(): TextFieldColors {
         focusedTrailingIconColor = Color.LightGray,
         unfocusedTrailingIconColor = Color.LightGray
     )
+}
+
+@Composable
+private fun validateOnFocusLost(
+    field: RegistroField,
+    viewModel: RegistroViewModel
+): Modifier {
+    var hadFocus by remember { mutableStateOf(false) }
+    return Modifier.onFocusChanged { focusState ->
+        if (!focusState.isFocused && hadFocus) {
+            viewModel.onFieldFocusLost(field)
+        }
+        hadFocus = focusState.isFocused
+    }
 }

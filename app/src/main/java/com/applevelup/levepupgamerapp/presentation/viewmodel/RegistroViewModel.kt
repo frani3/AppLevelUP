@@ -7,6 +7,7 @@ import com.applevelup.levepupgamerapp.data.repository.PaymentRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.UserRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.usecase.RegisterUserUseCase
+import com.applevelup.levepupgamerapp.utils.RunUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -16,6 +17,20 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+enum class RegistroField {
+    FIRST_NAME,
+    LAST_NAME,
+    EMAIL,
+    RUN,
+    BIRTH_DATE,
+    ADDRESS,
+    REGION,
+    COMUNA,
+    PASSWORD,
+    CONFIRM_PASSWORD,
+    TERMS
+}
+
 data class RegistroUiState(
     val firstName: String = "",
     val lastName: String = "",
@@ -24,7 +39,9 @@ data class RegistroUiState(
     val confirmPassword: String = "",
     val birthDate: String = "",
     val address: String = "",
-    val run: String = "",
+    val runBody: String = "",
+    val runCheckDigit: String = "",
+    val runHasHyphen: Boolean = false,
     val region: String = "",
     val comuna: String = "",
     val referralCode: String = "",
@@ -33,7 +50,8 @@ data class RegistroUiState(
     val isRegisterSuccessful: Boolean = false,
     val errors: FormErrors = FormErrors(),
     val generalError: String? = null,
-    val qualifiesForDuocDiscount: Boolean = false
+    val qualifiesForDuocDiscount: Boolean = false,
+    val touchedFields: Set<RegistroField> = emptySet()
 )
 
 data class FormErrors(
@@ -63,53 +81,151 @@ class RegistroViewModel(
     val uiState: StateFlow<RegistroUiState> = _uiState
 
     fun onFirstNameChange(value: String) {
-        _uiState.update { it.copy(firstName = value) }
+        val sanitized = sanitizeName(value)
+        _uiState.update { current ->
+            val updated = current.copy(firstName = sanitized)
+            val error = if (current.touchedFields.contains(RegistroField.FIRST_NAME)) {
+                validateField(RegistroField.FIRST_NAME, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.FIRST_NAME, error))
+        }
     }
 
     fun onLastNameChange(value: String) {
-        _uiState.update { it.copy(lastName = value) }
+        val sanitized = sanitizeName(value)
+        _uiState.update { current ->
+            val updated = current.copy(lastName = sanitized)
+            val error = if (current.touchedFields.contains(RegistroField.LAST_NAME)) {
+                validateField(RegistroField.LAST_NAME, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.LAST_NAME, error))
+        }
     }
 
     fun onEmailChange(value: String) {
-        _uiState.update {
-            it.copy(
-                email = value,
-                qualifiesForDuocDiscount = isDuocEmail(value)
+        val sanitized = value.trimStart()
+        _uiState.update { current ->
+            val updated = current.copy(
+                email = sanitized,
+                qualifiesForDuocDiscount = isDuocEmail(sanitized)
             )
+            val error = if (current.touchedFields.contains(RegistroField.EMAIL)) {
+                validateField(RegistroField.EMAIL, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.EMAIL, error))
         }
     }
 
     fun onPasswordChange(value: String) {
-        _uiState.update { it.copy(password = value) }
-    }
-
-    fun onConfirmPasswordChange(value: String) {
-        _uiState.update { it.copy(confirmPassword = value) }
-    }
-
-    fun onBirthDateChange(value: String) {
-        _uiState.update { it.copy(birthDate = value) }
-    }
-
-    fun onAddressChange(value: String) {
-        _uiState.update { it.copy(address = value) }
-    }
-
-    fun onRunChange(value: String) {
-        _uiState.update { it.copy(run = value) }
-    }
-
-    fun onRegionChange(value: String) {
-        _uiState.update {
-            it.copy(
-                region = value,
-                comuna = if (it.comuna.isBlank() || it.region != value) "" else it.comuna
+        _uiState.update { current ->
+            val updated = current.copy(password = value)
+            val passwordError = if (current.touchedFields.contains(RegistroField.PASSWORD)) {
+                validateField(RegistroField.PASSWORD, updated)
+            } else {
+                null
+            }
+            val confirmError = if (current.touchedFields.contains(RegistroField.CONFIRM_PASSWORD)) {
+                validateField(RegistroField.CONFIRM_PASSWORD, updated)
+            } else {
+                null
+            }
+            updated.copy(
+                errors = updated.errors
+                    .withField(RegistroField.PASSWORD, passwordError)
+                    .withField(RegistroField.CONFIRM_PASSWORD, confirmError)
             )
         }
     }
 
+    fun onConfirmPasswordChange(value: String) {
+        _uiState.update { current ->
+            val updated = current.copy(confirmPassword = value)
+            val error = if (current.touchedFields.contains(RegistroField.CONFIRM_PASSWORD)) {
+                validateField(RegistroField.CONFIRM_PASSWORD, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.CONFIRM_PASSWORD, error))
+        }
+    }
+
+    fun onBirthDateChange(value: String) {
+        _uiState.update { current ->
+            val touched = current.touchedFields + RegistroField.BIRTH_DATE
+            val updated = current.copy(birthDate = value, touchedFields = touched)
+            val error = validateField(RegistroField.BIRTH_DATE, updated)
+            updated.copy(errors = updated.errors.withField(RegistroField.BIRTH_DATE, error))
+        }
+    }
+
+    fun onAddressChange(value: String) {
+        _uiState.update { current ->
+            val updated = current.copy(address = value)
+            val error = if (current.touchedFields.contains(RegistroField.ADDRESS)) {
+                validateField(RegistroField.ADDRESS, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.ADDRESS, error))
+        }
+    }
+
+    fun onRunChange(value: String) {
+        val components = RunUtils.parseInput(value)
+        _uiState.update { current ->
+            val updated = current.copy(
+                runBody = components.body,
+                runCheckDigit = components.checkDigit,
+                runHasHyphen = components.hasHyphen
+            )
+            val error = if (current.touchedFields.contains(RegistroField.RUN)) {
+                validateField(RegistroField.RUN, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.RUN, error))
+        }
+    }
+
+    fun onRegionChange(value: String) {
+        _uiState.update { current ->
+            val touched = current.touchedFields + RegistroField.REGION
+            val shouldResetComuna = current.region != value
+            val updated = current.copy(
+                region = value,
+                comuna = if (shouldResetComuna) "" else current.comuna,
+                touchedFields = touched
+            )
+            var newErrors = updated.errors.withField(
+                RegistroField.REGION,
+                validateField(RegistroField.REGION, updated)
+            )
+            val comunaTouched = current.touchedFields.contains(RegistroField.COMUNA)
+            if (comunaTouched || shouldResetComuna) {
+                val comunaError = if (comunaTouched) {
+                    validateField(RegistroField.COMUNA, updated)
+                } else {
+                    null
+                }
+                newErrors = newErrors.withField(RegistroField.COMUNA, comunaError)
+            }
+            updated.copy(errors = newErrors)
+        }
+    }
+
     fun onComunaChange(value: String) {
-        _uiState.update { it.copy(comuna = value) }
+        _uiState.update { current ->
+            val touched = current.touchedFields + RegistroField.COMUNA
+            val updated = current.copy(comuna = value, touchedFields = touched)
+            val error = validateField(RegistroField.COMUNA, updated)
+            updated.copy(errors = updated.errors.withField(RegistroField.COMUNA, error))
+        }
     }
 
     fun onReferralCodeChange(value: String) {
@@ -117,7 +233,46 @@ class RegistroViewModel(
     }
 
     fun onTermsChange(value: Boolean) {
-        _uiState.update { it.copy(termsAccepted = value) }
+        _uiState.update { current ->
+            val touched = current.touchedFields + RegistroField.TERMS
+            val updated = current.copy(termsAccepted = value, touchedFields = touched)
+            val error = validateField(RegistroField.TERMS, updated)
+            updated.copy(errors = updated.errors.withField(RegistroField.TERMS, error))
+        }
+    }
+
+    fun onFieldFocusLost(field: RegistroField) {
+        _uiState.update { current ->
+            val touched = current.touchedFields + field
+            val updated = current.copy(touchedFields = touched)
+            val error = validateField(field, updated)
+            updated.copy(errors = updated.errors.withField(field, error))
+        }
+    }
+
+    fun setRunCheckDigit(digit: String) {
+        if (!RunUtils.isCheckDigitValid(digit)) return
+        _uiState.update { current ->
+            val updated = current.copy(runCheckDigit = digit.uppercase(), runHasHyphen = true)
+            val error = if (current.touchedFields.contains(RegistroField.RUN)) {
+                validateField(RegistroField.RUN, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.RUN, error))
+        }
+    }
+
+    fun clearRunCheckDigit() {
+        _uiState.update { current ->
+            val updated = current.copy(runCheckDigit = "")
+            val error = if (current.touchedFields.contains(RegistroField.RUN)) {
+                validateField(RegistroField.RUN, updated)
+            } else {
+                null
+            }
+            updated.copy(errors = updated.errors.withField(RegistroField.RUN, error))
+        }
     }
 
     fun register() {
@@ -125,7 +280,24 @@ class RegistroViewModel(
         val errors = validateForm(state)
 
         if (errors != FormErrors()) {
-            _uiState.update { it.copy(errors = errors, generalError = null) }
+            _uiState.update {
+                it.copy(
+                    errors = errors,
+                    generalError = null,
+                    touchedFields = RegistroField.values().toSet()
+                )
+            }
+            return
+        }
+
+        val sanitizedRun = RunUtils.buildFullRun(state.runBody, state.runCheckDigit)
+        if (sanitizedRun == null) {
+            _uiState.update {
+                it.copy(
+                    touchedFields = it.touchedFields + RegistroField.RUN,
+                    errors = it.errors.withField(RegistroField.RUN, "RUN inválido")
+                )
+            }
             return
         }
 
@@ -141,7 +313,7 @@ class RegistroViewModel(
             val result = registerUserUseCase(
                 firstName = state.firstName.trim(),
                 lastName = state.lastName.trim(),
-                run = state.run.trim(),
+                run = sanitizedRun,
                 email = state.email.trim(),
                 password = state.password,
                 birthDate = state.birthDate.trim(),
@@ -181,59 +353,102 @@ class RegistroViewModel(
     }
 
     private fun validateForm(state: RegistroUiState): FormErrors {
-        var firstNameError: String? = null
-        var lastNameError: String? = null
-        var emailError: String? = null
-        var passwordError: String? = null
-        var confirmPasswordError: String? = null
-        var birthDateError: String? = null
-        var addressError: String? = null
-        var runError: String? = null
-        var regionError: String? = null
-        var comunaError: String? = null
-        var termsError: String? = null
+        return FormErrors(
+            firstNameError = validateField(RegistroField.FIRST_NAME, state),
+            lastNameError = validateField(RegistroField.LAST_NAME, state),
+            emailError = validateField(RegistroField.EMAIL, state),
+            passwordError = validateField(RegistroField.PASSWORD, state),
+            confirmPasswordError = validateField(RegistroField.CONFIRM_PASSWORD, state),
+            birthDateError = validateField(RegistroField.BIRTH_DATE, state),
+            addressError = validateField(RegistroField.ADDRESS, state),
+            runError = validateField(RegistroField.RUN, state),
+            regionError = validateField(RegistroField.REGION, state),
+            comunaError = validateField(RegistroField.COMUNA, state),
+            termsError = validateField(RegistroField.TERMS, state)
+        )
+    }
 
-        if (state.firstName.isBlank()) firstNameError = "El nombre es obligatorio"
-        if (state.lastName.isBlank()) lastNameError = "Los apellidos son obligatorios"
-        if (state.email.isBlank() || !state.email.contains("@")) emailError = "Correo inválido"
-        if (state.password.length < 6) passwordError = "Contraseña muy corta"
-        if (state.password != state.confirmPassword) confirmPasswordError = "Las contraseñas no coinciden"
-        if (state.birthDate.isBlank()) {
-            birthDateError = "La fecha de nacimiento es obligatoria"
-        } else {
-            val parsedBirthDate = parseBirthDate(state.birthDate)
-            if (parsedBirthDate == null) {
-                birthDateError = "Formato inválido. Usa DD/MM/AAAA"
-            } else {
-                val age = calculateAge(parsedBirthDate)
-                if (age < MIN_AGE || age > MAX_AGE) {
-                    birthDateError = "La edad debe estar entre $MIN_AGE y $MAX_AGE años"
+    private fun validateField(field: RegistroField, state: RegistroUiState): String? {
+        return when (field) {
+            RegistroField.FIRST_NAME -> when {
+                state.firstName.isBlank() -> "El nombre es obligatorio"
+                !state.firstName.all(::isValidNameChar) -> "Solo se permiten letras y espacios"
+                else -> null
+            }
+
+            RegistroField.LAST_NAME -> when {
+                state.lastName.isBlank() -> "Los apellidos son obligatorios"
+                !state.lastName.all(::isValidNameChar) -> "Solo se permiten letras y espacios"
+                else -> null
+            }
+
+            RegistroField.EMAIL -> when {
+                state.email.isBlank() -> "El correo es obligatorio"
+                !state.email.contains("@") -> "Correo inválido"
+                else -> null
+            }
+
+            RegistroField.PASSWORD -> when {
+                state.password.length < 6 -> "Contraseña muy corta"
+                else -> null
+            }
+
+            RegistroField.CONFIRM_PASSWORD -> when {
+                state.confirmPassword.isBlank() -> "Confirma tu contraseña"
+                state.password != state.confirmPassword -> "Las contraseñas no coinciden"
+                else -> null
+            }
+
+            RegistroField.BIRTH_DATE -> {
+                if (state.birthDate.isBlank()) {
+                    "La fecha de nacimiento es obligatoria"
+                } else {
+                    val parsed = parseBirthDate(state.birthDate)
+                    if (parsed == null) {
+                        "Formato inválido. Usa DD/MM/AAAA"
+                    } else {
+                        val age = calculateAge(parsed)
+                        when {
+                            age < MIN_AGE || age > MAX_AGE -> "La edad debe estar entre $MIN_AGE y $MAX_AGE años"
+                            else -> null
+                        }
+                    }
                 }
             }
-        }
-        if (state.run.isBlank()) {
-            runError = "El RUN es obligatorio"
-        } else if (!isValidRun(state.run)) {
-            runError = "RUN inválido"
-        }
-        if (state.region.isBlank()) regionError = "Selecciona una región"
-        if (state.comuna.isBlank()) comunaError = "Selecciona una comuna"
-        if (state.address.isBlank()) addressError = "La dirección es obligatoria"
-        if (!state.termsAccepted) termsError = "Debes aceptar los términos"
 
-        return FormErrors(
-            firstNameError = firstNameError,
-            lastNameError = lastNameError,
-            emailError = emailError,
-            passwordError = passwordError,
-            confirmPasswordError = confirmPasswordError,
-            birthDateError = birthDateError,
-            addressError = addressError,
-            runError = runError,
-            regionError = regionError,
-            comunaError = comunaError,
-            termsError = termsError
-        )
+            RegistroField.ADDRESS -> if (state.address.isBlank()) {
+                "La dirección es obligatoria"
+            } else {
+                null
+            }
+
+            RegistroField.RUN -> when {
+                state.runBody.isBlank() -> "El RUN es obligatorio"
+                !RunUtils.isBodyLengthValid(state.runBody) -> "RUN incompleto"
+                state.runCheckDigit.isBlank() -> "Debes ingresar el dígito verificador"
+                !RunUtils.isCheckDigitValid(state.runCheckDigit) -> "Dígito verificador inválido"
+                RunUtils.calculateCheckDigit(state.runBody) != state.runCheckDigit.uppercase() -> "RUN inválido"
+                else -> null
+            }
+
+            RegistroField.REGION -> if (state.region.isBlank()) {
+                "Selecciona una región"
+            } else {
+                null
+            }
+
+            RegistroField.COMUNA -> if (state.comuna.isBlank()) {
+                "Selecciona una comuna"
+            } else {
+                null
+            }
+
+            RegistroField.TERMS -> if (!state.termsAccepted) {
+                "Debes aceptar los términos"
+            } else {
+                null
+            }
+        }
     }
 
     private fun parseBirthDate(raw: String): Calendar? {
@@ -265,40 +480,29 @@ class RegistroViewModel(
         return domain.contains("duoc")
     }
 
-    private fun isValidRun(raw: String): Boolean {
-        val sanitized = sanitizeRun(raw) ?: return false
-        if (!sanitized.matches(Regex("^\\d{7,8}-[0-9K]$"))) return false
-        val numberPart = sanitized.substringBefore('-')
-        val expectedDigit = calculateRunCheckDigit(numberPart)
-        val providedDigit = sanitized.substringAfter('-')
-        return expectedDigit.equals(providedDigit, ignoreCase = true)
+    private fun sanitizeName(raw: String): String {
+        if (raw.isEmpty()) return ""
+        val filtered = raw.filter(::isValidNameChar)
+        return filtered.replace(Regex("\\s+"), " ").trimStart()
     }
 
-    private fun sanitizeRun(raw: String): String? {
-        val cleaned = raw.uppercase(Locale.getDefault())
-            .replace(".", "")
-            .replace(" ", "")
-            .replace("-", "")
-        if (cleaned.length < 2) return null
-        val numberPart = cleaned.dropLast(1)
-        if (numberPart.isEmpty() || !numberPart.all { it.isDigit() }) return null
-        val checkDigit = cleaned.last()
-        return "$numberPart-$checkDigit"
+    private fun isValidNameChar(char: Char): Boolean {
+        return char.isLetter() || char == ' ' || char == '-' || char == '\''
     }
 
-    private fun calculateRunCheckDigit(numberPart: String): String {
-        var multiplier = 2
-        var sum = 0
-        for (digitChar in numberPart.reversed()) {
-            val digit = digitChar.digitToIntOrNull() ?: return ""
-            sum += digit * multiplier
-            multiplier = if (multiplier == 7) 2 else multiplier + 1
-        }
-        val remainder = 11 - (sum % 11)
-        return when (remainder) {
-            11 -> "0"
-            10 -> "K"
-            else -> remainder.toString()
+    private fun FormErrors.withField(field: RegistroField, error: String?): FormErrors {
+        return when (field) {
+            RegistroField.FIRST_NAME -> copy(firstNameError = error)
+            RegistroField.LAST_NAME -> copy(lastNameError = error)
+            RegistroField.EMAIL -> copy(emailError = error)
+            RegistroField.RUN -> copy(runError = error)
+            RegistroField.BIRTH_DATE -> copy(birthDateError = error)
+            RegistroField.ADDRESS -> copy(addressError = error)
+            RegistroField.REGION -> copy(regionError = error)
+            RegistroField.COMUNA -> copy(comunaError = error)
+            RegistroField.PASSWORD -> copy(passwordError = error)
+            RegistroField.CONFIRM_PASSWORD -> copy(confirmPasswordError = error)
+            RegistroField.TERMS -> copy(termsError = error)
         }
     }
 
