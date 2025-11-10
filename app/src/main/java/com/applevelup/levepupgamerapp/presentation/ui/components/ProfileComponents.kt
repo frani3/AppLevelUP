@@ -1,6 +1,7 @@
 package com.applevelup.levepupgamerapp.presentation.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -46,50 +47,54 @@ fun ProfileHeader(user: UserProfile, onChangePhotoRequest: () -> Unit) {
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .border(3.dp, PrimaryPurple, CircleShape)
-                .clickable(onClick = onChangePhotoRequest),
+            modifier = Modifier.size(120.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
-            if (imageModel != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(imageModel)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Avatar de usuario",
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = user.avatarRes),
-                    contentDescription = "Avatar de usuario",
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(CircleShape)
+                    .border(3.dp, PrimaryPurple, CircleShape)
+                    .clickable(onClick = onChangePhotoRequest)
+            ) {
+                if (imageModel != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageModel)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Avatar de usuario",
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = user.avatarRes),
+                        contentDescription = "Avatar de usuario",
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             IconButton(
                 onClick = onChangePhotoRequest,
                 modifier = Modifier
-                    .size(36.dp)
-                    .offset((-4).dp, (-4).dp)
+                    .size(40.dp)
+                    .offset((-6).dp, (-6).dp)
                     .clip(CircleShape)
+                    .background(PrimaryPurple)
                     .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,
                     contentDescription = "Cambiar foto",
                     tint = Color.White,
-                    modifier = Modifier
-                        .size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
