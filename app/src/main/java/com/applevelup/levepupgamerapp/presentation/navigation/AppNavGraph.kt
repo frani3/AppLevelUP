@@ -65,6 +65,13 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             exitTransition = { fadeOut(animationSpec = tween(durationMillis = 220)) }
         ) { LandingPageScreen(navController) }
         composable(
+            route = Destinations.Catalog.route,
+            enterTransition = { forwardEnter() },
+            exitTransition = { forwardExit() },
+            popEnterTransition = { backwardEnter() },
+            popExitTransition = { backwardExit() }
+        ) { CatalogScreen(navController) }
+        composable(
             route = Destinations.Categories.route,
             enterTransition = { forwardEnter() },
             exitTransition = { forwardExit() },

@@ -292,7 +292,11 @@ fun LandingPageScreen(
                 item {
                     SectionTitle(
                         title = "Categorías Populares",
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp),
+                        actionLabel = "Ver catálogo",
+                        onActionClick = {
+                            navController.navigate(Destinations.Catalog.route)
+                        }
                     )
                 }
                 item {

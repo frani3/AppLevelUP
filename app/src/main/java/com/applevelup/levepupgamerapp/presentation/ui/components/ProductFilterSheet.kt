@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Button
@@ -51,9 +53,11 @@ fun ProductFilterSheet(
     availablePriceRange: ClosedFloatingPointRange<Double>,
     onApply: (ProductFilters) -> Unit,
     onReset: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    availableCategories: List<String> = emptyList()
 ) {
     val priceRange = normalizeRange(availablePriceRange)
+    val scrollState = rememberScrollState()
     var sliderValues by remember(currentFilters, priceRange) {
         val initialMin = (currentFilters.minPrice?.toFloat() ?: priceRange.start)
             .coerceIn(priceRange.start, priceRange.endInclusive)
@@ -64,6 +68,15 @@ fun ProductFilterSheet(
     var onSaleOnly by remember(currentFilters) { mutableStateOf(currentFilters.onSaleOnly) }
     var minRating by remember(currentFilters) { mutableStateOf(currentFilters.minRating ?: 0f) }
     var sortOption by remember(currentFilters) { mutableStateOf(currentFilters.sortOption) }
+    val normalizedCategories = remember(availableCategories) {
+        availableCategories.distinct().sorted()
+    }
+    var allCategoriesSelected by remember(currentFilters, normalizedCategories) {
+        mutableStateOf(currentFilters.categories.isEmpty() || currentFilters.categories.containsAll(normalizedCategories))
+    }
+    var selectedCategories by remember(currentFilters, normalizedCategories) {
+        mutableStateOf(currentFilters.categories.intersect(normalizedCategories.toSet()))
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -72,6 +85,7 @@ fun ProductFilterSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -81,6 +95,61 @@ fun ProductFilterSheet(
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium
             )
+
+            if (normalizedCategories.isNotEmpty()) {
+                Text("Categorías", color = Color.LightGray, fontWeight = FontWeight.SemiBold)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    FilterChip(
+                        selected = allCategoriesSelected,
+                        onClick = {
+                            allCategoriesSelected = true
+                            selectedCategories = emptySet()
+                        },
+                        label = { Text("Todas", color = Color.White) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = PrimaryPurple,
+                            selectedLabelColor = Color.White,
+                            containerColor = Color.DarkGray.copy(alpha = 0.5f)
+                        )
+                    )
+
+                    normalizedCategories.forEach { category ->
+                        val isSelected = !allCategoriesSelected && selectedCategories.contains(category)
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                val next = selectedCategories.toMutableSet().also { set ->
+                                    if (set.contains(category)) {
+                                        set.remove(category)
+                                    } else {
+                                        set.add(category)
+                                    }
+                                }
+                                if (next.isEmpty()) {
+                                    allCategoriesSelected = true
+                                    selectedCategories = emptySet()
+                                } else if (next.containsAll(normalizedCategories)) {
+                                    allCategoriesSelected = true
+                                    selectedCategories = emptySet()
+                                } else {
+                                    allCategoriesSelected = false
+                                    selectedCategories = next
+                                }
+                            },
+                            label = { Text(category, color = Color.White) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = PrimaryPurple,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.DarkGray.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+                }
+            }
 
             Text("Rango de precios", color = Color.LightGray, fontWeight = FontWeight.SemiBold)
             RangeSlider(
@@ -130,8 +199,15 @@ fun ProductFilterSheet(
                         val sanitizedMin = if (abs(minPriceValue - priceRange.start.toDouble()) < 1.0) null else minPriceValue
                         val sanitizedMax = if (abs(maxPriceValue - priceRange.endInclusive.toDouble()) < 1.0) null else maxPriceValue
                         val ratingValue = if (minRating <= 0f) null else minRating
+                        val categorySelection = when {
+                            allCategoriesSelected -> emptySet()
+                            selectedCategories.isEmpty() -> emptySet()
+                            selectedCategories.containsAll(normalizedCategories) -> emptySet()
+                            else -> selectedCategories
+                        }
                         onApply(
                             currentFilters.copy(
+                                categories = categorySelection,
                                 minPrice = sanitizedMin,
                                 maxPrice = sanitizedMax,
                                 minRating = ratingValue,

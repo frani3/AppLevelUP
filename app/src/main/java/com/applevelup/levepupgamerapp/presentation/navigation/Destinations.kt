@@ -12,6 +12,7 @@ sealed class Destinations(val route: String) {
 
     // Home / catálogo
     data object Landing : Destinations("landing_page")
+    data object Catalog : Destinations("catalogo")
     data object Categories : Destinations("categorias")
     data object Search : Destinations("buscar") {
         fun withQuery(query: String) = "${route}?query=${Uri.encode(query)}"

@@ -4,14 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -41,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.applevelup.levepupgamerapp.presentation.ui.components.EmptyProductView
 import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.components.LevelUpBottomNavigation
 import com.applevelup.levepupgamerapp.presentation.ui.components.MainDestination
@@ -53,32 +50,33 @@ import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.ui.theme.TopBarAndDrawerColor
 import com.applevelup.levepupgamerapp.presentation.viewmodel.CartViewModel
+import com.applevelup.levepupgamerapp.presentation.viewmodel.CatalogViewModel
+import com.applevelup.levepupgamerapp.presentation.viewmodel.CatalogViewModelFactory
 import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductListEvent
-import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductListViewModel
-import com.applevelup.levepupgamerapp.presentation.viewmodel.ProductListViewModelFactory
 import com.applevelup.levepupgamerapp.presentation.viewmodel.SessionViewModel
 import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductListScreen(
+fun CatalogScreen(
     navController: NavController,
-    categoryName: String,
-    viewModel: ProductListViewModel = viewModel(factory = ProductListViewModelFactory())
+    viewModel: CatalogViewModel = viewModel(factory = CatalogViewModelFactory()),
+    cartViewModel: CartViewModel = viewModel(),
+    sessionViewModel: SessionViewModel = viewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showFilterSheet by remember { mutableStateOf(false) }
-    val cartViewModel: CartViewModel = viewModel()
+
     val cartState by cartViewModel.uiState.collectAsState()
-    val sessionViewModel: SessionViewModel = viewModel()
     val sessionState by sessionViewModel.sessionState.collectAsState()
     val cartCount = remember(cartState.items) { cartState.items.sumOf { it.quantity } }
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val selectedDestination = mapRouteToMainDestination(backStackEntry?.destination?.route)
     val isAdminUser = remember(sessionState) {
         sessionState.isSuperAdmin || sessionState.profileRole?.equals("Administrador", ignoreCase = true) == true
     }
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val selectedDestination = mapRouteToMainDestination(backStackEntry?.destination?.route)
+
     val openAddProduct = remember(navController, isAdminUser) {
         {
             if (!isAdminUser) {
@@ -90,10 +88,6 @@ fun ProductListScreen(
                 }
             }
         }
-    }
-
-    LaunchedEffect(categoryName) {
-        viewModel.loadProducts(categoryName)
     }
 
     LaunchedEffect(viewModel) {
@@ -108,14 +102,14 @@ fun ProductListScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(categoryName, fontWeight = FontWeight.Bold) },
+                title = { Text("Catálogo", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = TopBarAndDrawerColor,
                     titleContentColor = Color.White
                 ),
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Color.White)
+                actions = {
+                    IconButton(onClick = { showFilterSheet = true }) {
+                        Icon(Icons.Filled.FilterList, contentDescription = "Filtros", tint = Color.White)
                     }
                 }
             )
@@ -135,26 +129,24 @@ fun ProductListScreen(
         containerColor = PureBlackBackground
     ) { paddingValues ->
         when {
-            state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = PrimaryPurple)
             }
 
-            state.errorMessage != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Error: ${state.errorMessage}", color = Color.Red)
+            uiState.errorMessage != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Error: ${uiState.errorMessage}", color = Color.Red)
             }
 
-            state.products.isEmpty() -> EmptyProductView(categoryName)
+            uiState.products.isEmpty() -> CatalogEmptyState()
 
             else -> Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                val activeFilters = state.filters.activeFiltersCount(
-                    defaultCategories = setOf(categoryName)
-                )
+                val activeFilters = uiState.filters.activeFiltersCount()
                 FilterSummaryBar(
-                    total = state.products.size,
+                    total = uiState.products.size,
                     activeFilters = activeFilters,
                     onOpenFilters = { showFilterSheet = true }
                 )
@@ -166,7 +158,7 @@ fun ProductListScreen(
                     contentPadding = PaddingValues(bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(state.products, key = { it.id }) { product ->
+                    items(uiState.products, key = { it.id }) { product ->
                         ProductListItem(
                             product = product,
                             onAddToCart = { viewModel.addProductToCart(product.id) },
@@ -180,18 +172,19 @@ fun ProductListScreen(
 
     if (showFilterSheet) {
         ProductFilterSheet(
-            currentFilters = state.filters,
-            availablePriceRange = state.availablePriceRange,
+            currentFilters = uiState.filters,
+            availablePriceRange = uiState.availablePriceRange,
             onApply = viewModel::applyFilters,
             onReset = viewModel::resetFilters,
-            onDismiss = { showFilterSheet = false }
+            onDismiss = { showFilterSheet = false },
+            availableCategories = uiState.availableCategories
         )
     }
 }
 
 @Composable
 private fun FilterSummaryBar(total: Int, activeFilters: Int, onOpenFilters: () -> Unit) {
-    Row(
+    androidx.compose.foundation.layout.Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -219,5 +212,19 @@ private fun FilterSummaryBar(total: Int, activeFilters: Int, onOpenFilters: () -
                 containerColor = Color.DarkGray.copy(alpha = 0.4f)
             )
         )
+    }
+}
+
+@Composable
+private fun CatalogEmptyState() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("¡Uy!", fontWeight = FontWeight.Bold, color = Color.White, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                "No encontramos productos disponibles en este momento.",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }

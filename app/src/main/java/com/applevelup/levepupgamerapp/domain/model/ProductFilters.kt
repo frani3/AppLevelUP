@@ -15,13 +15,17 @@ data class ProductFilters(
         return copy(categories = setOf(category))
     }
 
-    fun activeFiltersCount(defaultSort: ProductSortOption = ProductSortOption.RELEVANCE): Int {
+    fun activeFiltersCount(
+        defaultSort: ProductSortOption = ProductSortOption.RELEVANCE,
+        defaultCategories: Set<String> = emptySet()
+    ): Int {
         var count = 0
         if (minPrice != null) count++
         if (maxPrice != null) count++
         if (minRating != null) count++
         if (onSaleOnly) count++
         if (sortOption != defaultSort) count++
+        if (categories.isNotEmpty() && categories != defaultCategories) count++
         return count
     }
 }
