@@ -32,10 +32,10 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
-square-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-square-retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
-square-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
-square-okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+squareRetrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+squareRetrofitConverterGson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+squareOkhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+squareOkhttpLogging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
