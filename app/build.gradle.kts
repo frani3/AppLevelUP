@@ -92,4 +92,10 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
+    // Networking
+    implementation(libs.squareRetrofit)
+    implementation(libs.squareRetrofitConverterGson)
+    implementation(libs.squareOkhttp)
+    implementation(libs.squareOkhttpLogging)
+
 }

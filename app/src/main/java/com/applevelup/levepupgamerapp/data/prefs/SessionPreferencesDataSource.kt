@@ -71,6 +71,16 @@ class SessionPreferencesDataSource(context: Context) {
             )
         }
 
+    val tokenFlow: Flow<String?> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences -> preferences[KEY_AUTH_TOKEN] }
+
     suspend fun seedSuperAdminIfNeeded() {
         dataStore.edit { preferences ->
             if (preferences[KEY_SEEDED] == true) return@edit
@@ -145,6 +155,22 @@ class SessionPreferencesDataSource(context: Context) {
         )
     }
 
+    suspend fun saveToken(token: String?) {
+        dataStore.edit { preferences ->
+            if (token.isNullOrBlank()) {
+                preferences.remove(KEY_AUTH_TOKEN)
+            } else {
+                preferences[KEY_AUTH_TOKEN] = token
+            }
+        }
+    }
+
+    suspend fun clearToken() {
+        dataStore.edit { preferences ->
+            preferences.remove(KEY_AUTH_TOKEN)
+        }
+    }
+
     companion object {
         private const val CURRENT_VERSION = 3
         private val KEY_SEEDED = booleanPreferencesKey("seeded")
@@ -156,5 +182,6 @@ class SessionPreferencesDataSource(context: Context) {
         private val KEY_VERSION = intPreferencesKey("prefs_version")
         private val KEY_PROFILE_ROLE = stringPreferencesKey("profile_role")
         private val KEY_IS_SUPER_ADMIN = booleanPreferencesKey("is_super_admin")
+        private val KEY_AUTH_TOKEN = stringPreferencesKey("auth_token")
     }
 }

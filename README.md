@@ -71,6 +71,14 @@ app/src/main/java/com/applevelup/levepupgamerapp
 3. Permitir que Gradle sincronice dependencias usando el wrapper incluido (`gradlew`).
 4. Ejecutar desde Android Studio en un emulador Pixel API 33+ o dispositivo físico con modo desarrollador.
 
+## Integración LevelUp API
+
+- La carpeta `data/network` contiene la configuración de Retrofit/OkHttp (incluye interceptores de autorización y logging) más los DTO necesarios para login, catálogo, estadísticas, regiones y direcciones.
+- `data/local/levelup` y `data/local/dao` almacenan caches de productos, categorías, regiones y direcciones con metadatos de expiración y DAOs observables para MVVM.
+- `domain/repository/levelup`, `domain/usecase/levelup` y `presentation/viewmodel/levelup` encapsulan los contratos, casos de uso y ViewModels reutilizables, mientras `LevelUpDependencyContainer` ofrece instancias listas para inyección.
+- Revisa `infoAPI.md` para entender los endpoints, y `API_INTEGRATION_CHECKLIST.md` para seguir el estado de la integración móvil.
+- **Pruebas sugeridas:** iniciar sesión, refrescar catálogo (`products/categories/regions`), consultar `users/me`, crear/editar/eliminar direcciones y verificar `levelup` stats para el usuario autenticado.
+
 ## Troubleshooting
 - Datos que no se actualizan: en el emulador ve a Ajustes > Apps > Level-UP Gamer > Storage y selecciona “Clear cache” y “Clear data”.
 - Crashes al iniciar: usa `Build > Clean Project` seguido de `Build > Rebuild Project` para regenerar clases Kapt/Room.
