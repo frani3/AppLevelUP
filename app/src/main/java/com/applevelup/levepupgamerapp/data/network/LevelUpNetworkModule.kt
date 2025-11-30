@@ -9,7 +9,8 @@ import java.util.concurrent.TimeUnit
 
 object LevelUpNetworkModule {
 
-    private const val BASE_URL = "http://localhost:8080"
+    // API alojada en Railway, controla comunicación segura HTTPS
+    private const val BASE_URL = "https://backleveluprail-production.up.railway.app/"
     private const val TIMEOUT_SECONDS = 30L
 
     fun createApi(tokenProvider: TokenProvider): LevelUpMobileApi {
