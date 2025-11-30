@@ -12,7 +12,7 @@ class FetchRegionsUseCase(private val repository: LevelUpRegionRepository) {
 
     operator fun invoke(forceRefresh: Boolean = false): Flow<LevelUpResource<List<LevelUpRegion>>> {
         return repository.observeRegions()
-            .map { LevelUpResource.Success(it) }
+            .map<List<LevelUpRegion>, LevelUpResource<List<LevelUpRegion>>> { LevelUpResource.Success(it) }
             .onStart {
                 emit(LevelUpResource.Loading)
                 val refresh = repository.refreshRegions(forceRefresh)

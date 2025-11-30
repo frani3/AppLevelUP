@@ -12,7 +12,7 @@ class FetchUserProfileUseCase(private val repository: LevelUpUserRepository) {
 
     operator fun invoke(forceRefresh: Boolean = false): Flow<LevelUpResource<LevelUpUserProfile?>> {
         return repository.observeProfile()
-            .map { LevelUpResource.Success(it) }
+            .map<LevelUpUserProfile?, LevelUpResource<LevelUpUserProfile?>> { LevelUpResource.Success(it) }
             .onStart {
                 emit(LevelUpResource.Loading)
                 val refresh = repository.refreshProfile()

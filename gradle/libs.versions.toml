@@ -9,6 +9,7 @@ lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2024.09.00"
 room = "2.6.1"
+desugar = "2.0.3"
 datastore = "1.1.1"
 retrofit = "2.9.0"
 okhttp = "4.11.0"
@@ -36,6 +37,7 @@ squareRetrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.
 squareRetrofitConverterGson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 squareOkhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 squareOkhttpLogging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugar" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

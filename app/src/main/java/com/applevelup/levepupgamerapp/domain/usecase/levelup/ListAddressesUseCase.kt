@@ -12,7 +12,7 @@ class ListAddressesUseCase(private val repository: LevelUpAddressRepository) {
 
     operator fun invoke(run: String, forceRefresh: Boolean = false): Flow<LevelUpResource<List<LevelUpAddress>>> {
         return repository.observeAddresses(run)
-            .map { LevelUpResource.Success(it) }
+            .map<List<LevelUpAddress>, LevelUpResource<List<LevelUpAddress>>> { LevelUpResource.Success(it) }
             .onStart {
                 emit(LevelUpResource.Loading)
                 val refresh = repository.refreshAddresses(run, forceRefresh)

@@ -12,7 +12,7 @@ class FetchProductsUseCase(private val repository: LevelUpProductRepository) {
 
     operator fun invoke(forceRefresh: Boolean = false): Flow<LevelUpResource<List<LevelUpProduct>>> {
         return repository.observeProducts()
-            .map { LevelUpResource.Success(it) }
+            .map<List<LevelUpProduct>, LevelUpResource<List<LevelUpProduct>>> { LevelUpResource.Success(it) }
             .onStart {
                 emit(LevelUpResource.Loading)
                 val refresh = repository.refreshProducts(forceRefresh)

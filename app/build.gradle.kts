@@ -31,6 +31,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -97,5 +98,6 @@ dependencies {
     implementation(libs.squareRetrofitConverterGson)
     implementation(libs.squareOkhttp)
     implementation(libs.squareOkhttpLogging)
+    coreLibraryDesugaring(libs.desugarJdkLibs)
 
 }

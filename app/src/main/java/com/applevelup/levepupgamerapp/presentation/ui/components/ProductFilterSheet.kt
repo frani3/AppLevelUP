@@ -258,6 +258,7 @@ private fun FilterToggle(title: String, checked: Boolean, onCheckedChange: (Bool
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RatingSelector(minRating: Float, onSelect: (Float) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -284,6 +285,7 @@ private fun RatingSelector(minRating: Float, onSelect: (Float) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SortSelector(current: ProductSortOption, onSelected: (ProductSortOption) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

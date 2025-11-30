@@ -12,7 +12,7 @@ class FetchCategoriesUseCase(private val repository: LevelUpCategoryRepository) 
 
     operator fun invoke(forceRefresh: Boolean = false): Flow<LevelUpResource<List<LevelUpCategory>>> {
         return repository.observeCategories()
-            .map { LevelUpResource.Success(it) }
+            .map<List<LevelUpCategory>, LevelUpResource<List<LevelUpCategory>>> { LevelUpResource.Success(it) }
             .onStart {
                 emit(LevelUpResource.Loading)
                 val refresh = repository.refreshCategories(forceRefresh)
