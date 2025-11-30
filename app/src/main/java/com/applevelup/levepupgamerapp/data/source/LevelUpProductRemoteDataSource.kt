@@ -1,9 +1,10 @@
 package com.applevelup.levepupgamerapp.data.source
 
 import com.applevelup.levepupgamerapp.data.network.LevelUpMobileApi
+import com.applevelup.levepupgamerapp.data.network.dto.CreateProductRequestDto
+import com.applevelup.levepupgamerapp.data.network.dto.ProductDto
 import com.applevelup.levepupgamerapp.domain.model.Product
 import kotlin.math.absoluteValue
-import com.applevelup.levepupgamerapp.data.source.ProductRemoteDataSource
 
 class LevelUpProductRemoteDataSource(
     private val api: LevelUpMobileApi,
@@ -12,22 +13,38 @@ class LevelUpProductRemoteDataSource(
 
     override suspend fun fetchProducts(): List<Product> {
         val payload = api.getProducts()
-        return payload.map { dto ->
-            Product(
-                id = idProvider(dto.codigo),
-                code = dto.codigo,
-                name = dto.nombre,
-                price = dto.precio,
-                oldPrice = null,
-                rating = 0f,
-                reviews = 0,
-                imageRes = null,
-                imageUrl = dto.imagenUrl,
-                imageUri = null,
-                category = dto.categoria,
-                description = dto.descripcion.orEmpty(),
-                stock = dto.stock
-            )
-        }
+        return payload.map { dto -> dto.toDomain() }
+    }
+
+    override suspend fun createProduct(product: Product): Product {
+        val request = CreateProductRequestDto(
+            codigo = product.code,
+            nombre = product.name,
+            descripcion = product.description,
+            precio = product.price,
+            stock = product.stock,
+            categoria = product.category,
+            imagenUrl = product.imageUrl?.takeIf { it.isNotBlank() }
+        )
+        val created = api.createProduct(request)
+        return created.toDomain()
+    }
+
+    private fun ProductDto.toDomain(): Product {
+        return Product(
+            id = idProvider(codigo),
+            code = codigo,
+            name = nombre,
+            price = precio,
+            oldPrice = null,
+            rating = 0f,
+            reviews = 0,
+            imageRes = null,
+            imageUrl = imagenUrl,
+            imageUri = null,
+            category = categoria,
+            description = descripcion.orEmpty(),
+            stock = stock
+        )
     }
 }

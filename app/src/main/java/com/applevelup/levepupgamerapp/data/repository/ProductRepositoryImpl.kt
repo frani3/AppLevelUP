@@ -65,11 +65,13 @@ class ProductRepositoryImpl(
     }
 
     override suspend fun addProduct(product: Product): Product {
-        val nextId = productDao.getMaxProductId()?.let { it + 1 } ?: 1
-        val finalProduct = if (product.id == 0) product.copy(id = nextId) else product
-        val entity = ProductMapper.toEntity(finalProduct)
-        productDao.upsertProducts(listOf(entity))
-        return ProductMapper.toDomain(entity)
+        remoteDataSource?.let {
+            val created = it.createProduct(product)
+            upsertLocalProduct(created)
+            return created
+        }
+
+        return addProductLocally(product)
     }
 
     override suspend fun refreshProducts(force: Boolean) {
@@ -107,6 +109,18 @@ class ProductRepositoryImpl(
             productDao.upsertProducts(entities)
         }
         return remoteProducts
+    }
+
+    private suspend fun addProductLocally(product: Product): Product {
+        val nextId = productDao.getMaxProductId()?.let { it + 1 } ?: 1
+        val finalProduct = if (product.id == 0) product.copy(id = nextId) else product
+        upsertLocalProduct(finalProduct)
+        return finalProduct
+    }
+
+    private suspend fun upsertLocalProduct(product: Product) {
+        val entity = ProductMapper.toEntity(product)
+        productDao.upsertProducts(listOf(entity))
     }
 
     private fun List<Product>.applyFilters(filters: ProductFilters): List<Product> {

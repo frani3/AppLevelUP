@@ -4,6 +4,7 @@ import com.applevelup.levepupgamerapp.data.network.dto.AuthResponseDto
 import com.applevelup.levepupgamerapp.data.network.dto.AddressDto
 import com.applevelup.levepupgamerapp.data.network.dto.AddressRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.CategoryDto
+import com.applevelup.levepupgamerapp.data.network.dto.CreateProductRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.LevelUpStatsDto
 import com.applevelup.levepupgamerapp.data.network.dto.LoginRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.ProductDto
@@ -41,6 +42,9 @@ interface LevelUpMobileApi {
 
     @GET("/api/v1/products/{codigo}")
     suspend fun getProductDetail(@Path("codigo") codigo: String): ProductDto
+
+    @POST("/api/v1/products")
+    suspend fun createProduct(@Body request: CreateProductRequestDto): ProductDto
 
     @GET("/api/v1/categories")
     suspend fun getCategories(): List<CategoryDto>

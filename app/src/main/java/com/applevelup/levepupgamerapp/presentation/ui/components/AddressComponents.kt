@@ -18,14 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.applevelup.levepupgamerapp.domain.model.Address
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpAddress
 import com.applevelup.levepupgamerapp.presentation.ui.theme.CardBackgroundColor
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 
 // 🔹 Tarjeta individual de dirección
 @Composable
 fun AddressCard(
-    address: Address,
+    address: LevelUpAddress,
     onSelect: () -> Unit,
     onDelete: () -> Unit,
     onEdit: () -> Unit = {}
@@ -58,7 +58,7 @@ fun AddressCard(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
-                    if (address.isDefault) {
+                    if (address.isPrimary) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Predeterminada",
@@ -88,11 +88,24 @@ fun AddressCard(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Text(address.street, color = Color.LightGray, fontSize = 14.sp)
-            Text(address.city, color = Color.Gray, fontSize = 13.sp)
-            if (address.details.isNotEmpty()) {
+            val streetLine = buildString {
+                append(address.street)
+                address.numero?.takeIf { it.isNotBlank() }?.let {
+                    append(" #")
+                    append(it)
+                }
+            }
+            Text(streetLine, color = Color.LightGray, fontSize = 14.sp)
+            val secondary = listOfNotNull(
+                address.comuna.takeIf { it.isNotBlank() },
+                address.region.takeIf { it.isNotBlank() }
+            ).joinToString(separator = " · ")
+            if (secondary.isNotBlank()) {
+                Text(secondary, color = Color.Gray, fontSize = 13.sp)
+            }
+            address.complement?.takeIf { it.isNotBlank() }?.let { complement ->
                 Text(
-                    text = "Detalles: ${address.details}",
+                    text = "Detalles: $complement",
                     color = Color.Gray,
                     fontSize = 13.sp
                 )

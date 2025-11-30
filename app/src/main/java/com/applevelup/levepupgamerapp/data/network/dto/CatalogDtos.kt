@@ -10,6 +10,16 @@ data class ProductDto(
     val imagenUrl: String?
 )
 
+data class CreateProductRequestDto(
+    val codigo: String,
+    val nombre: String,
+    val descripcion: String,
+    val precio: Double,
+    val stock: Int,
+    val categoria: String,
+    val imagenUrl: String?
+)
+
 data class CategoryDto(
     val id: String,
     val nombre: String,

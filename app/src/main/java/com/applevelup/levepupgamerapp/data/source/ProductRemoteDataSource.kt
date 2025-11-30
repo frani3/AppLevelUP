@@ -4,4 +4,5 @@ import com.applevelup.levepupgamerapp.domain.model.Product
 
 interface ProductRemoteDataSource {
     suspend fun fetchProducts(): List<Product>
+    suspend fun createProduct(product: Product): Product
 }
