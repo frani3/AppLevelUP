@@ -9,7 +9,14 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
@@ -19,15 +26,28 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.applevelup.levepupgamerapp.presentation.ui.screens.*
 import androidx.compose.animation.ExperimentalAnimationApi
+import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavGraph(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+    val sessionRepository = remember { SessionRepositoryImpl() }
+    val startDestination by produceState<String?>(initialValue = null, sessionRepository) {
+        val session = sessionRepository.getSession()
+        value = if (session.isLoggedIn) Destinations.Landing.route else Destinations.Login.route
+    }
+
+    val resolvedStartDestination = startDestination ?: run {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     NavHost(
         navController = navController,
-        startDestination = Destinations.Splash.route,
+        startDestination = resolvedStartDestination,
         modifier = modifier
     ) {
         // Auth
