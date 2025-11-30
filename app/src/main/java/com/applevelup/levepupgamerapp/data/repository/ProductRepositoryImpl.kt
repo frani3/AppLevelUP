@@ -8,12 +8,14 @@ import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.domain.model.ProductFilters
 import com.applevelup.levepupgamerapp.domain.model.ProductSortOption
 import com.applevelup.levepupgamerapp.domain.repository.ProductRepository
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
+import com.applevelup.levepupgamerapp.data.source.LevelUpProductRemoteDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class ProductRepositoryImpl(
     private val productDao: ProductDao = LevelUpApplication.database.productDao(),
-    private val remoteDataSource: ProductRemoteDataSource? = null
+    private val remoteDataSource: ProductRemoteDataSource? = LevelUpProductRemoteDataSource(LevelUpDependencyContainer.api)
 ) : ProductRepository {
 
     override fun observeProducts(): Flow<List<Product>> {

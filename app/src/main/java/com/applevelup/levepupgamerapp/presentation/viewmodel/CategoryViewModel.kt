@@ -28,8 +28,11 @@ class CategoryViewModel(
 
     private fun loadCategories() {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(categories = getCategories(), isLoading = false)
+            try {
+                val categories = getCategories()
+                _uiState.update { it.copy(categories = categories, isLoading = false) }
+            } catch (exception: Exception) {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

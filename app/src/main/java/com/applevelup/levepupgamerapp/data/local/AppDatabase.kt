@@ -22,7 +22,6 @@ import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpAddressEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpCategoryEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpProductEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpRegionEntity
-import com.applevelup.levepupgamerapp.data.local.seed.LocalSeedData
 
 @Database(
 	entities = [
@@ -50,23 +49,6 @@ abstract class AppDatabase : RoomDatabase() {
 	abstract fun levelUpRegionDao(): LevelUpRegionDao
 	abstract fun levelUpAddressDao(): LevelUpAddressDao
 	abstract fun cacheMetadataDao(): CacheMetadataDao
-
-	suspend fun seed() {
-		val productDao = productDao()
-		productDao.upsertProducts(LocalSeedData.defaultProducts)
-
-		val userDao = userDao()
-		LocalSeedData.seededUsers.forEach { seed ->
-			val existing = userDao.findByEmail(seed.email)
-			if (existing == null) {
-				userDao.insertUser(seed.copy(id = 0))
-			}
-		}
-
-		if (userDao.countSuperAdmins() == 0) {
-			userDao.insertUser(LocalSeedData.superAdmin.copy(id = 0))
-		}
-	}
 
 	companion object {
 		private const val DB_NAME = "levelup_gamer_app.db"

@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.applevelup.levepupgamerapp.data.local.seed.LocalSeedData
 import com.applevelup.levepupgamerapp.domain.model.SessionState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -24,8 +23,6 @@ class SessionPreferencesDataSource(context: Context) {
 
     private val dataStore = context.applicationContext.sessionDataStore
 
-    private val superAdmin = LocalSeedData.superAdmin
-
     val sessionFlow: Flow<SessionState> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
@@ -35,31 +32,6 @@ class SessionPreferencesDataSource(context: Context) {
             }
         }
         .map { preferences ->
-            val seeded = preferences[KEY_SEEDED] ?: false
-            val version = preferences[KEY_VERSION] ?: 0
-            if (version < CURRENT_VERSION) {
-                return@map SessionState(
-                    isLoggedIn = false,
-                    userId = null,
-                    email = superAdmin.email,
-                    fullName = null,
-                    rememberMe = true,
-                    profileRole = superAdmin.profileRole,
-                    isSuperAdmin = superAdmin.isSuperAdmin
-                )
-            }
-            if (!seeded) {
-                return@map SessionState(
-                    isLoggedIn = false,
-                    userId = null,
-                    email = superAdmin.email,
-                    fullName = null,
-                    rememberMe = true,
-                    profileRole = superAdmin.profileRole,
-                    isSuperAdmin = superAdmin.isSuperAdmin
-                )
-            }
-
             SessionState(
                 isLoggedIn = preferences[KEY_LOGGED_IN] ?: false,
                 userId = preferences[KEY_USER_ID],
@@ -81,30 +53,8 @@ class SessionPreferencesDataSource(context: Context) {
         }
         .map { preferences -> preferences[KEY_AUTH_TOKEN] }
 
-    suspend fun seedSuperAdminIfNeeded() {
-        dataStore.edit { preferences ->
-            if (preferences[KEY_SEEDED] == true) return@edit
-
-            preferences[KEY_SEEDED] = true
-            preferences[KEY_VERSION] = CURRENT_VERSION
-            preferences[KEY_LOGGED_IN] = false
-            preferences.remove(KEY_USER_ID)
-            preferences[KEY_EMAIL] = superAdmin.email
-            preferences.remove(KEY_FULL_NAME)
-            preferences[KEY_REMEMBER_ME] = true
-            if (superAdmin.profileRole.isNullOrBlank()) {
-                preferences.remove(KEY_PROFILE_ROLE)
-            } else {
-                preferences[KEY_PROFILE_ROLE] = superAdmin.profileRole
-            }
-            preferences[KEY_IS_SUPER_ADMIN] = superAdmin.isSuperAdmin
-        }
-    }
-
     suspend fun saveSession(state: SessionState) {
         dataStore.edit { preferences ->
-            preferences[KEY_SEEDED] = true
-            preferences[KEY_VERSION] = CURRENT_VERSION
             preferences[KEY_LOGGED_IN] = state.isLoggedIn
 
             if (state.userId != null) {
@@ -172,14 +122,11 @@ class SessionPreferencesDataSource(context: Context) {
     }
 
     companion object {
-        private const val CURRENT_VERSION = 3
-        private val KEY_SEEDED = booleanPreferencesKey("seeded")
         private val KEY_LOGGED_IN = booleanPreferencesKey("logged_in")
         private val KEY_USER_ID = longPreferencesKey("user_id")
         private val KEY_EMAIL = stringPreferencesKey("email")
         private val KEY_FULL_NAME = stringPreferencesKey("full_name")
         private val KEY_REMEMBER_ME = booleanPreferencesKey("remember_me")
-        private val KEY_VERSION = intPreferencesKey("prefs_version")
         private val KEY_PROFILE_ROLE = stringPreferencesKey("profile_role")
         private val KEY_IS_SUPER_ADMIN = booleanPreferencesKey("is_super_admin")
         private val KEY_AUTH_TOKEN = stringPreferencesKey("auth_token")

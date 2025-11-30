@@ -7,6 +7,7 @@ import com.applevelup.levepupgamerapp.data.mapper.LevelUpProductMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpRegionMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpStatsMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpUserMapper
+import com.applevelup.levepupgamerapp.data.network.LevelUpMobileApi
 import com.applevelup.levepupgamerapp.data.network.LevelUpNetworkModule
 import com.applevelup.levepupgamerapp.data.network.session.SessionTokenProvider
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpAddressRepositoryImpl
@@ -44,6 +45,8 @@ object LevelUpDependencyContainer {
     private val mobileApi by lazy {
         LevelUpNetworkModule.createApi(tokenProvider)
     }
+
+    val api: LevelUpMobileApi get() = mobileApi
 
     val authRepository: LevelUpAuthRepository by lazy {
         LevelUpAuthRepositoryImpl(mobileApi, tokenProvider, userRepository, userMapper)
