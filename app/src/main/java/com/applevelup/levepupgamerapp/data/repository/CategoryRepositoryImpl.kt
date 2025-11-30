@@ -3,25 +3,32 @@ package com.applevelup.levepupgamerapp.data.repository
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
-import com.applevelup.levepupgamerapp.data.network.LevelUpMobileApi
-import com.applevelup.levepupgamerapp.data.network.dto.CategoryDto
 import com.applevelup.levepupgamerapp.domain.model.CategoryInfo
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpCategory
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
 import com.applevelup.levepupgamerapp.domain.repository.CategoryRepository
+import kotlinx.coroutines.flow.first
 
-class CategoryRepositoryImpl(
-    private val api: LevelUpMobileApi = LevelUpDependencyContainer.api
-) : CategoryRepository {
+class CategoryRepositoryImpl : CategoryRepository {
+
+    private val levelUpCategories = LevelUpDependencyContainer.categoryRepository
 
     override suspend fun getAllCategories(): List<CategoryInfo> {
-        return runCatching {
-            api.getCategories().map(::mapDto)
-        }.getOrElse { fallbackCategories() }
+        val cached = levelUpCategories.observeCategories().first()
+        if (cached.isNotEmpty()) return cached.map(::mapDomain)
+
+        val refresh = levelUpCategories.refreshCategories(force = true)
+        if (refresh is LevelUpResult.Failure) {
+            return emptyList()
+        }
+
+        return levelUpCategories.observeCategories().first().map(::mapDomain)
     }
 
-    private fun mapDto(dto: CategoryDto): CategoryInfo {
+    private fun mapDomain(category: LevelUpCategory): CategoryInfo {
         return CategoryInfo(
-            name = dto.nombre,
-            icon = iconFor(dto.nombre),
+            name = category.name,
+            icon = iconFor(category.name),
             sampleProducts = emptyList()
         )
     }
@@ -40,16 +47,4 @@ class CategoryRepositoryImpl(
             else -> Icons.Default.Tag
         }
     }
-
-    private fun fallbackCategories(): List<CategoryInfo> = listOf(
-        CategoryInfo("Juegos de Mesa", Icons.Default.Casino, listOf("Catan", "Carcassonne")),
-        CategoryInfo("Accesorios", Icons.Default.Headset, listOf("Control Xbox Series X", "Auriculares HyperX Cloud II")),
-        CategoryInfo("Consolas", Icons.Default.VideogameAsset, listOf("PlayStation 5", "Nintendo Switch OLED")),
-        CategoryInfo("Computadores Gamers", Icons.Default.DesktopWindows, listOf("PC Gamer ASUS ROG Strix", "Notebook MSI Katana")),
-        CategoryInfo("Sillas Gamers", Icons.Default.Chair, listOf("Silla Gamer Secretlab Titan", "Silla Gamer Cougar Armor One")),
-        CategoryInfo("Mouse", Icons.Default.Mouse, listOf("Mouse Logitech G502 HERO", "Mouse Razer DeathAdder V2")),
-        CategoryInfo("Mousepad", Icons.Default.SquareFoot, listOf("Mousepad Razer Goliathus", "Mousepad Logitech G Powerplay")),
-        CategoryInfo("Poleras Personalizadas", Icons.Default.Checkroom, listOf("Polera Gamer Personalizada", "Polera Retro Arcade")),
-        CategoryInfo("Polerones Gamers", Icons.Default.Checkroom, listOf("Polerón Gamer 'Respawn'", "Polerón Level-Up Logo"))
-    )
 }

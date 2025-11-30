@@ -1,6 +1,7 @@
 package com.applevelup.levepupgamerapp
 
 import android.app.Application
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.data.local.AppDatabase
 import com.applevelup.levepupgamerapp.data.prefs.FavoritePreferencesDataSource
 import com.applevelup.levepupgamerapp.data.prefs.NotificationPreferencesDataSource
@@ -29,6 +30,7 @@ class LevelUpApplication : Application() {
     private fun refreshCatalogOnLaunch() {
         applicationScope.launch {
             runCatching { ProductRepositoryImpl().refreshProducts(force = true) }
+            runCatching { LevelUpDependencyContainer.categoryRepository.refreshCategories(force = true) }
         }
     }
 
