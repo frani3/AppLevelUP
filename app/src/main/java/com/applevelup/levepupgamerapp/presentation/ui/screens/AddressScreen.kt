@@ -132,7 +132,7 @@ fun AddressScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            when (profileState) {
+            when (val profileResource = profileState) {
                 LevelUpResource.Loading -> LoadingView()
                 is LevelUpResource.Error -> ErrorView(
                     message = "No pudimos cargar tu perfil",
@@ -141,7 +141,7 @@ fun AddressScreen(
                     }
                 )
                 is LevelUpResource.Success -> {
-                    val profile = profileState.data
+                    val profile = profileResource.data
                     val currentRun = profile?.run
                     if (currentRun.isNullOrBlank()) {
                         ErrorView(message = "Tu cuenta no tiene RUN asociado.")
