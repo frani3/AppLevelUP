@@ -72,6 +72,21 @@ class ProductRepositoryImpl(
         return ProductMapper.toDomain(entity)
     }
 
+    override suspend fun refreshProducts(force: Boolean) {
+        if (remoteDataSource == null) return
+        if (!force) {
+            val hasData = productDao.countProducts() > 0
+            if (hasData) return
+        }
+
+        val remoteProducts = remoteDataSource.fetchProducts()
+        productDao.clearProducts()
+        if (remoteProducts.isNotEmpty()) {
+            val entities = remoteProducts.map(ProductMapper::toEntity)
+            productDao.upsertProducts(entities)
+        }
+    }
+
     private suspend fun loadLocalProducts(filters: ProductFilters, query: String? = null): List<Product> {
         val entities = when {
             query != null -> productDao.searchProducts(query)

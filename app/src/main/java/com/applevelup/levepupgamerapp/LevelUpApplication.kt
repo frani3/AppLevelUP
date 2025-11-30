@@ -1,12 +1,19 @@
 package com.applevelup.levepupgamerapp
 
 import android.app.Application
+import com.applevelup.levepupgamerapp.data.local.AppDatabase
 import com.applevelup.levepupgamerapp.data.prefs.FavoritePreferencesDataSource
 import com.applevelup.levepupgamerapp.data.prefs.NotificationPreferencesDataSource
-import com.applevelup.levepupgamerapp.data.local.AppDatabase
 import com.applevelup.levepupgamerapp.data.prefs.SessionPreferencesDataSource
+import com.applevelup.levepupgamerapp.data.repository.ProductRepositoryImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class LevelUpApplication : Application() {
+
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     val appDatabase: AppDatabase by lazy { AppDatabase.build(this) }
     val sessionPreferencesDataSource: SessionPreferencesDataSource by lazy { SessionPreferencesDataSource(this) }
@@ -16,6 +23,13 @@ class LevelUpApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        refreshCatalogOnLaunch()
+    }
+
+    private fun refreshCatalogOnLaunch() {
+        applicationScope.launch {
+            runCatching { ProductRepositoryImpl().refreshProducts(force = true) }
+        }
     }
 
     companion object {

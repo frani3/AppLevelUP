@@ -11,4 +11,5 @@ interface ProductRepository {
     suspend fun getProductById(id: Int): Product?
     suspend fun searchProducts(query: String, filters: ProductFilters = ProductFilters()): List<Product>
     suspend fun addProduct(product: Product): Product
+    suspend fun refreshProducts(force: Boolean = false)
 }
