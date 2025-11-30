@@ -2,8 +2,8 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.UserRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.usecase.ObserveSessionUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.ValidateUserLoginUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,11 +22,13 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val sessionRepository: SessionRepositoryImpl = SessionRepositoryImpl(),
-    private val userRepository: UserRepositoryImpl = UserRepositoryImpl()
+    private val sessionRepository: SessionRepositoryImpl = SessionRepositoryImpl()
 ) : ViewModel() {
 
-    private val validateLoginUseCase = ValidateUserLoginUseCase(userRepository, sessionRepository)
+    private val validateLoginUseCase = ValidateUserLoginUseCase(
+        LevelUpDependencyContainer.authRepository,
+        sessionRepository
+    )
     private val observeSessionUseCase = ObserveSessionUseCase(sessionRepository)
 
     private val _uiState = MutableStateFlow(LoginUiState())

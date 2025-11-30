@@ -1,16 +1,14 @@
 package com.applevelup.levepupgamerapp.domain.usecase
 
-import com.applevelup.levepupgamerapp.data.repository.AddressRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.PaymentRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.SessionState
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.model.levelup.LoginCredentials
 import com.applevelup.levepupgamerapp.domain.repository.SessionRepository
-import com.applevelup.levepupgamerapp.domain.repository.UserRepository
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpAuthRepository
 
 class ValidateUserLoginUseCase(
-	private val userRepository: UserRepository,
-	private val sessionRepository: SessionRepository,
-	private val addressRepository: AddressRepositoryImpl = AddressRepositoryImpl(),
-	private val paymentRepository: PaymentRepositoryImpl = PaymentRepositoryImpl()
+	private val authRepository: LevelUpAuthRepository,
+	private val sessionRepository: SessionRepository
 ) {
 
 	sealed class Result {
@@ -24,45 +22,26 @@ class ValidateUserLoginUseCase(
 			return Result.Error("El correo es obligatorio")
 		}
 
-		val candidate = userRepository.findUserByEmail(normalizedEmail)
-			?: return Result.Error("Credenciales inválidas")
+		if (password.isBlank()) {
+			return Result.Error("Debes ingresar tu contraseña")
+		}
 
-		val authenticatedUser = if (candidate.hasPassword) {
-			if (password.isBlank()) {
-				return Result.Error("Debes ingresar tu contraseña")
+		return when (val result = authRepository.login(LoginCredentials(normalizedEmail, password))) {
+			is LevelUpResult.Success -> {
+				sessionRepository.saveSession(
+					SessionState(
+						isLoggedIn = true,
+						userId = null,
+						email = if (rememberMe) normalizedEmail else null,
+						fullName = result.data.name,
+						rememberMe = rememberMe,
+						profileRole = null,
+						isSuperAdmin = false
+					)
+				)
+				Result.Success
 			}
-			userRepository.authenticate(normalizedEmail, password)
-				?: return Result.Error("Credenciales inválidas")
-		} else {
-			userRepository.authenticate(normalizedEmail, password) ?: candidate
+			is LevelUpResult.Failure -> Result.Error(result.throwable.message ?: "Credenciales inválidas")
 		}
-
-		sessionRepository.saveSession(
-			SessionState(
-				isLoggedIn = true,
-				userId = authenticatedUser.id,
-				email = if (rememberMe) authenticatedUser.email else null,
-				fullName = authenticatedUser.fullName,
-				rememberMe = rememberMe,
-				profileRole = authenticatedUser.profileRole,
-				isSuperAdmin = authenticatedUser.isSuperAdmin
-			)
-		)
-
-		val profile = userRepository.getUserProfile()
-		val primaryAddress = profile?.address?.trim().orEmpty()
-		if (profile != null) {
-			sessionRepository.updateSession { state ->
-				state.copy(profileRole = profile.profileRole ?: state.profileRole)
-			}
-		}
-		if (primaryAddress.isNotEmpty()) {
-			addressRepository.setPrimaryAddress(primaryAddress)
-		} else {
-			addressRepository.clearAll()
-		}
-		paymentRepository.clearPaymentMethods()
-
-		return Result.Success
 	}
 }
