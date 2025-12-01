@@ -18,6 +18,7 @@ import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpAddressEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpCategoryEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpProductEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpRegionEntity
+import com.applevelup.levepupgamerapp.data.local.levelup.ComunasConverter
 
 @Database(
 	entities = [
@@ -29,9 +30,10 @@ import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpRegionEntity
 		LevelUpAddressEntity::class,
 		CacheMetadataEntity::class
 	],
-	version = 8,
-	exportSchema = true
+	version = 9,
+	exportSchema = false
 )
+@androidx.room.TypeConverters(ComunasConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
 	abstract fun productDao(): ProductDao
