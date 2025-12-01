@@ -7,5 +7,9 @@ data class LevelUpUserProfile(
     val address: String?,
     val commune: String?,
     val region: String?,
-    val stats: LevelUpStats?
+    val stats: LevelUpStats?,
+    // Perfil: "Cliente", "Vendedor", "Administrador"
+    val perfil: String? = null,
+    // true si systemAccount es true en la API
+    val isSuperAdmin: Boolean = false
 )

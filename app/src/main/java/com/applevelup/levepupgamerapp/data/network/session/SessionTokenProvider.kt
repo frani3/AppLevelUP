@@ -34,9 +34,9 @@ class SessionTokenProvider(
     }
     
     /**
-     * Extrae el rol del payload del JWT.
+     * Extrae los roles del payload del JWT.
      * El JWT tiene formato: header.payload.signature
-     * El payload es Base64 encoded JSON con claims como "role"
+     * El claim 'roles' es un array: ["ROLE_CLIENTE"] o ["ROLE_ADMINISTRADOR", "ROLE_SUPERADMIN"]
      */
     private fun extractRoleFromToken(token: String?): String? {
         if (token.isNullOrBlank()) return null
@@ -48,11 +48,23 @@ class SessionTokenProvider(
             val decodedBytes = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP)
             val json = JSONObject(String(decodedBytes, Charsets.UTF_8))
             
-            // Buscar rol en varios campos posibles
-            listOf("role", "rol", "roles", "authorities").firstNotNullOfOrNull { key ->
-                json.optString(key, "").takeIf { it.isNotBlank() }
+            android.util.Log.d("SessionTokenProvider", "JWT Payload: $json")
+            
+            // El claim 'roles' es un array de strings
+            val rolesArray = json.optJSONArray("roles")
+            val roles = mutableListOf<String>()
+            if (rolesArray != null) {
+                for (i in 0 until rolesArray.length()) {
+                    roles.add(rolesArray.getString(i))
+                }
             }
+            
+            android.util.Log.d("SessionTokenProvider", "JWT Roles: $roles")
+            
+            // Retornar roles separados por coma para procesarlos después
+            roles.joinToString(",").takeIf { it.isNotBlank() }
         } catch (e: Exception) {
+            android.util.Log.e("SessionTokenProvider", "Error extracting roles", e)
             null
         }
     }

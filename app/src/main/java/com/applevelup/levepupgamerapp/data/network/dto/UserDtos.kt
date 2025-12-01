@@ -9,7 +9,11 @@ data class UserProfileDto(
     val direccion: String?,
     val comuna: String?,
     val region: String?,
-    val levelUpStats: LevelUpStatsDto?
+    val levelUpStats: LevelUpStatsDto?,
+    // Campo de perfil: "Cliente", "Vendedor", "Administrador"
+    val perfil: String? = null,
+    // true si es superadmin
+    val systemAccount: Boolean? = null
 )
 
 data class UpdateProfileRequestDto(

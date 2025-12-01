@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.data.network.session.SessionTokenProvider
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpUserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -19,7 +20,8 @@ data class LevelUpSessionState(
 )
 
 class SessionViewModel(
-    private val tokenProvider: SessionTokenProvider = LevelUpDependencyContainer.sessionTokenProvider
+    private val tokenProvider: SessionTokenProvider = LevelUpDependencyContainer.sessionTokenProvider,
+    private val userRepository: LevelUpUserRepository = LevelUpDependencyContainer.userRepository
 ) : ViewModel() {
 
     private val _sessionState = MutableStateFlow(LevelUpSessionState())
@@ -27,19 +29,32 @@ class SessionViewModel(
 
     init {
         viewModelScope.launch {
-            // Combinar token y rol para actualizar el estado
+            // Combinar token, roles del JWT y perfil del usuario
             combine(
                 tokenProvider.tokenFlow,
-                tokenProvider.userRole
-            ) { token, role ->
+                tokenProvider.userRole,
+                userRepository.observeProfile()
+            ) { token, jwtRoles, profile ->
                 val isLoggedIn = token != null
-                val normalizedRole = role?.lowercase()
-                val isSuperAdmin = normalizedRole == "superadmin" || normalizedRole == "super_admin"
-                val isAdmin = isSuperAdmin || normalizedRole == "admin" || normalizedRole == "administrador"
+                
+                // Parsear roles del JWT (viene como "ROLE_ADMIN,ROLE_SUPERADMIN")
+                val rolesList = jwtRoles?.split(",")?.map { it.trim().uppercase() } ?: emptyList()
+                
+                // Determinar si es superadmin: por JWT o por systemAccount del perfil
+                val isSuperAdmin = rolesList.any { it.contains("SUPERADMIN") } || 
+                    profile?.isSuperAdmin == true
+                
+                // Determinar si es admin: ROLE_ADMINISTRADOR, ROLE_VENDEDOR, o perfil Administrador/Vendedor
+                val isAdmin = isSuperAdmin ||
+                    rolesList.any { it.contains("ADMINISTRADOR") || it.contains("VENDEDOR") } ||
+                    profile?.perfil?.equals("Administrador", ignoreCase = true) == true ||
+                    profile?.perfil?.equals("Vendedor", ignoreCase = true) == true
+                
+                android.util.Log.d("SessionViewModel", "JWT Roles: $rolesList, Profile perfil: ${profile?.perfil}, isSuperAdmin: $isSuperAdmin, isAdmin: $isAdmin")
                 
                 LevelUpSessionState(
                     isLoggedIn = isLoggedIn,
-                    profileRole = if (isAdmin) "Administrador" else role,
+                    profileRole = if (isAdmin) "Administrador" else profile?.perfil,
                     isSuperAdmin = isSuperAdmin
                 )
             }.collect { state ->

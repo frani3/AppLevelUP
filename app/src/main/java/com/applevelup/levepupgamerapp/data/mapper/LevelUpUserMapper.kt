@@ -12,6 +12,8 @@ class LevelUpUserMapper(private val statsMapper: LevelUpStatsMapper) {
         address = dto.direccion,
         commune = dto.comuna,
         region = dto.region,
-        stats = dto.levelUpStats?.let(statsMapper::fromDto)
+        stats = dto.levelUpStats?.let(statsMapper::fromDto),
+        perfil = dto.perfil,
+        isSuperAdmin = dto.systemAccount == true
     )
 }
