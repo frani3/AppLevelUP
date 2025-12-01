@@ -173,6 +173,37 @@ fun OrderHistory(orders: List<Order>) {
 
 @Composable
 fun OrderCard(order: Order) {
+    // Formatear ID corto (últimos 8 caracteres)
+    val shortId = if (order.id.length > 8) "...${order.id.takeLast(8)}" else order.id
+    
+    // Formatear fecha (de ISO a formato legible)
+    val formattedDate = try {
+        val isoDate = order.date.replace("T", " ").take(16) // "2025-12-01 01:25"
+        isoDate
+    } catch (e: Exception) {
+        order.date
+    }
+    
+    // Traducir status
+    val displayStatus = when (order.status.lowercase()) {
+        "pending" -> "Pendiente"
+        "paid", "pagado" -> "Pagado"
+        "shipped" -> "Enviado"
+        "delivered" -> "Entregado"
+        "cancelled" -> "Cancelado"
+        else -> order.status
+    }
+    
+    // Color del status
+    val statusColor = when (order.status.lowercase()) {
+        "paid", "pagado" -> Color(0xFF4CAF50) // Verde
+        "pending" -> Color(0xFFFFC107) // Amarillo
+        "shipped" -> Color(0xFF2196F3) // Azul
+        "delivered" -> Color(0xFF4CAF50) // Verde
+        "cancelled" -> Color(0xFFF44336) // Rojo
+        else -> PrimaryPurple
+    }
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,20 +211,66 @@ fun OrderCard(order: Order) {
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp)
         ) {
-            Column {
-                Text(order.id, color = Color.White, fontWeight = FontWeight.Bold)
-                Text(order.date, color = Color.Gray, fontSize = 13.sp)
+            // Fila superior: ID y Status
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Pedido #${shortId}",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = statusColor.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = displayStatus,
+                        color = statusColor,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(order.status, color = PrimaryPurple, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text(order.total, color = Color.White, fontWeight = FontWeight.Bold)
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Fila inferior: Fecha, Items y Total
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = formattedDate,
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = "${order.itemCount} producto${if (order.itemCount != 1) "s" else ""}",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+                Text(
+                    text = order.total,
+                    color = PrimaryPurple,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
             }
         }
     }
