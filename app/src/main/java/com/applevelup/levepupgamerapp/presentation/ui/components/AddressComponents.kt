@@ -9,6 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,13 +30,13 @@ fun AddressCard(
     address: LevelUpAddress,
     onSelect: () -> Unit,
     onDelete: () -> Unit,
-    onEdit: () -> Unit = {}
+    onEdit: () -> Unit = {},
+    onSetPrimary: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, PrimaryPurple, RoundedCornerShape(16.dp))
-            .clickable(onClick = onSelect),
+            .border(1.dp, PrimaryPurple, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(containerColor = CardBackgroundColor),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -44,7 +46,7 @@ fun AddressCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Ubicación",
@@ -58,18 +60,17 @@ fun AddressCard(
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
-                    if (address.isPrimary) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Predeterminada",
-                            color = PrimaryPurple,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
                 }
 
                 Row {
+                    // Botón para marcar como principal
+                    IconButton(onClick = onSetPrimary) {
+                        Icon(
+                            imageVector = if (address.isPrimary) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                            contentDescription = if (address.isPrimary) "Dirección principal" else "Marcar como principal",
+                            tint = if (address.isPrimary) PrimaryPurple else Color.Gray
+                        )
+                    }
                     IconButton(onClick = onEdit) {
                         Icon(
                             imageVector = Icons.Default.Edit,

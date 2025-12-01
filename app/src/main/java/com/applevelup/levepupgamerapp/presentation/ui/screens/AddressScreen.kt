@@ -162,15 +162,14 @@ fun AddressScreen(
                             resource = addressesResource,
                             profile = profile,
                             onRetry = { addressViewModel.refreshAddresses(currentRun) },
-                            onSelect = { address ->
+                            onSetPrimary = { address ->
                                 coroutineScope.launch {
                                     when (val result = addressViewModel.setPrimaryAddress(currentRun, address.id)) {
                                         is LevelUpResult.Success -> {
-                                            snackbarHostState.showSnackbar("Dirección seleccionada")
-                                            navController.popBackStack()
+                                            snackbarHostState.showSnackbar("Dirección marcada como principal")
                                         }
                                         is LevelUpResult.Failure -> {
-                                            snackbarHostState.showSnackbar(result.throwable.message ?: "Error al seleccionar")
+                                            snackbarHostState.showSnackbar(result.throwable.message ?: "Error al marcar como principal")
                                         }
                                     }
                                 }
@@ -198,7 +197,7 @@ private fun AddressListContent(
     resource: LevelUpResource<List<LevelUpAddress>>,
     profile: LevelUpUserProfile?,
     onRetry: () -> Unit,
-    onSelect: (LevelUpAddress) -> Unit,
+    onSetPrimary: (LevelUpAddress) -> Unit,
     onDelete: (LevelUpAddress) -> Unit
 ) {
     // Crear dirección desde el perfil si tiene datos
@@ -260,8 +259,9 @@ private fun AddressListContent(
                     items(addresses, key = { it.id }) { address ->
                         AddressCard(
                             address = address,
-                            onSelect = { onSelect(address) },
-                            onDelete = { onDelete(address) }
+                            onSelect = { },
+                            onDelete = { onDelete(address) },
+                            onSetPrimary = { onSetPrimary(address) }
                         )
                     }
                 }
