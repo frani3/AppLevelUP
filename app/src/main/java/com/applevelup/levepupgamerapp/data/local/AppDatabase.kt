@@ -30,7 +30,7 @@ import com.applevelup.levepupgamerapp.data.local.levelup.ComunasConverter
 		LevelUpAddressEntity::class,
 		CacheMetadataEntity::class
 	],
-	version = 9,
+	version = 10,
 	exportSchema = false
 )
 @androidx.room.TypeConverters(ComunasConverter::class)
