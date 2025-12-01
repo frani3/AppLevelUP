@@ -3,9 +3,10 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
-import com.applevelup.levepupgamerapp.data.network.session.TokenProvider
+import com.applevelup.levepupgamerapp.data.network.session.SessionTokenProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -18,7 +19,7 @@ data class LevelUpSessionState(
 )
 
 class SessionViewModel(
-    private val tokenProvider: TokenProvider = LevelUpDependencyContainer.sessionTokenProvider
+    private val tokenProvider: SessionTokenProvider = LevelUpDependencyContainer.sessionTokenProvider
 ) : ViewModel() {
 
     private val _sessionState = MutableStateFlow(LevelUpSessionState())
@@ -26,8 +27,23 @@ class SessionViewModel(
 
     init {
         viewModelScope.launch {
-            tokenProvider.tokenFlow.collect { token ->
-                _sessionState.value = LevelUpSessionState(isLoggedIn = token != null)
+            // Combinar token y rol para actualizar el estado
+            combine(
+                tokenProvider.tokenFlow,
+                tokenProvider.userRole
+            ) { token, role ->
+                val isLoggedIn = token != null
+                val normalizedRole = role?.lowercase()
+                val isSuperAdmin = normalizedRole == "superadmin" || normalizedRole == "super_admin"
+                val isAdmin = isSuperAdmin || normalizedRole == "admin" || normalizedRole == "administrador"
+                
+                LevelUpSessionState(
+                    isLoggedIn = isLoggedIn,
+                    profileRole = if (isAdmin) "Administrador" else role,
+                    isSuperAdmin = isSuperAdmin
+                )
+            }.collect { state ->
+                _sessionState.value = state
             }
         }
     }
