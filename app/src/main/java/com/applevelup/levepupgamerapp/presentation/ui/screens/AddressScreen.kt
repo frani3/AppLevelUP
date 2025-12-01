@@ -166,6 +166,8 @@ fun AddressScreen(
                                 coroutineScope.launch {
                                     when (val result = addressViewModel.setPrimaryAddress(currentRun, address.id)) {
                                         is LevelUpResult.Success -> {
+                                            // Forzar refresh para actualizar la UI
+                                            addressViewModel.refreshAddresses(currentRun, forceRefresh = true)
                                             snackbarHostState.showSnackbar("Dirección marcada como principal")
                                         }
                                         is LevelUpResult.Failure -> {
