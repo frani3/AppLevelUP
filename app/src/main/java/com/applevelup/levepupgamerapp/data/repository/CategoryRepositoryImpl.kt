@@ -44,7 +44,24 @@ class CategoryRepositoryImpl : CategoryRepository {
             "mousepad" in lowercase -> Icons.Default.SquareFoot
             "mouse" in lowercase -> Icons.Default.Mouse
             "polera" in lowercase || "polerón" in lowercase -> Icons.Default.Checkroom
-            else -> Icons.Default.Tag
+            // Nuevas categorías
+            "ssd" in lowercase || "disco" in lowercase || "almacenamiento" in lowercase -> Icons.Default.Storage
+            "teclado" in lowercase || "keyboard" in lowercase -> Icons.Default.Keyboard
+            "monitor" in lowercase || "pantalla" in lowercase -> Icons.Default.Monitor
+            "auricular" in lowercase || "audífono" in lowercase || "headset" in lowercase -> Icons.Default.Headphones
+            "cable" in lowercase || "adaptador" in lowercase -> Icons.Default.Cable
+            "memoria" in lowercase || "ram" in lowercase -> Icons.Default.Memory
+            "gpu" in lowercase || "tarjeta" in lowercase || "gráfica" in lowercase -> Icons.Default.DeveloperBoard
+            "fuente" in lowercase || "power" in lowercase -> Icons.Default.Power
+            "cooler" in lowercase || "ventilador" in lowercase || "enfriamiento" in lowercase -> Icons.Default.AcUnit
+            "gabinete" in lowercase || "case" in lowercase || "torre" in lowercase -> Icons.Default.Computer
+            "streaming" in lowercase || "cámara" in lowercase || "webcam" in lowercase -> Icons.Default.Videocam
+            "micrófono" in lowercase || "micro" in lowercase -> Icons.Default.Mic
+            "control" in lowercase || "joystick" in lowercase || "mando" in lowercase -> Icons.Default.SportsEsports
+            "vr" in lowercase || "realidad virtual" in lowercase -> Icons.Default.Vrpano
+            "luz" in lowercase || "led" in lowercase || "rgb" in lowercase -> Icons.Default.LightMode
+            // Icono genérico para categorías no mapeadas
+            else -> Icons.Default.NewReleases
         }
     }
 }

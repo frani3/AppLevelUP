@@ -5,17 +5,21 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.R
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.data.repository.ProductRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.model.Product
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCategoryRepository
 import com.applevelup.levepupgamerapp.domain.usecase.CreateProductUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-private val defaultCategories = listOf(
+// Categorías por defecto como fallback si la API no responde
+private val fallbackCategories = listOf(
     "Juegos de Mesa",
     "Accesorios",
     "Consolas",
@@ -46,8 +50,9 @@ data class AddProductUiState(
     val oldPrice: String = "",
     val stock: String = "",
     val description: String = "",
-    val category: String? = defaultCategories.firstOrNull(),
-    val categories: List<String> = defaultCategories,
+    val category: String? = null,
+    val categories: List<String> = emptyList(),
+    val isLoadingCategories: Boolean = true,
     val imageInputMode: AddProductImageMode = AddProductImageMode.NONE,
     val imageUrl: String = "",
     val imageUri: Uri? = null,
@@ -69,7 +74,8 @@ sealed interface AddProductEvent {
 }
 
 class AddProductViewModel(
-    private val createProductUseCase: CreateProductUseCase = CreateProductUseCase(ProductRepositoryImpl())
+    private val createProductUseCase: CreateProductUseCase = CreateProductUseCase(ProductRepositoryImpl()),
+    private val categoryRepository: LevelUpCategoryRepository = LevelUpDependencyContainer.categoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddProductUiState())
@@ -77,6 +83,46 @@ class AddProductViewModel(
 
     private val _events = MutableSharedFlow<AddProductEvent>(extraBufferCapacity = 1)
     val events: SharedFlow<AddProductEvent> = _events
+    
+    init {
+        loadCategories()
+    }
+    
+    private fun loadCategories() {
+        viewModelScope.launch {
+            try {
+                // Primero refrescar desde la API
+                categoryRepository.refreshCategories(force = false)
+                
+                // Obtener categorías del cache
+                val apiCategories = categoryRepository.observeCategories().first()
+                val categoryNames = apiCategories.map { it.name }.sorted()
+                
+                val finalCategories = if (categoryNames.isNotEmpty()) {
+                    categoryNames
+                } else {
+                    fallbackCategories
+                }
+                
+                _uiState.update { current ->
+                    current.copy(
+                        categories = finalCategories,
+                        category = current.category ?: finalCategories.firstOrNull(),
+                        isLoadingCategories = false
+                    )
+                }
+            } catch (e: Exception) {
+                // En caso de error, usar categorías por defecto
+                _uiState.update { current ->
+                    current.copy(
+                        categories = fallbackCategories,
+                        category = current.category ?: fallbackCategories.firstOrNull(),
+                        isLoadingCategories = false
+                    )
+                }
+            }
+        }
+    }
 
     fun onCodeChange(value: String) {
         _uiState.update { current ->
