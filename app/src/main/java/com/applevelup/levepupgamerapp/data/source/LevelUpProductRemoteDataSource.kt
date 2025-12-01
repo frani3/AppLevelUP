@@ -18,12 +18,15 @@ class LevelUpProductRemoteDataSource(
 
     override suspend fun createProduct(product: Product): Product {
         val request = CreateProductRequestDto(
-            codigo = product.code,
+            codigo = product.code.takeIf { it.isNotBlank() },
             nombre = product.name,
-            descripcion = product.description,
-            precio = product.price,
-            stock = product.stock,
+            descripcion = product.description.takeIf { it.isNotBlank() },
             categoria = product.category,
+            fabricante = null,
+            distribuidor = null,
+            precio = product.price,
+            stock = product.stock.takeIf { it > 0 },
+            stockCritico = null,
             imagenUrl = product.imageUrl?.takeIf { it.isNotBlank() }
         )
         val created = api.createProduct(request)

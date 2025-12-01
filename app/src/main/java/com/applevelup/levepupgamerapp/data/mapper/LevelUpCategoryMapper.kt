@@ -8,13 +8,12 @@ class LevelUpCategoryMapper {
 
     fun fromDto(dto: CategoryDto): LevelUpCategoryEntity = LevelUpCategoryEntity(
         id = dto.id,
-        name = dto.nombre,
-        description = dto.descripcion
+        name = dto.nombre
     )
 
     fun toDomain(entity: LevelUpCategoryEntity): LevelUpCategory = LevelUpCategory(
-        id = entity.id,
+        id = entity.id.toString(),
         name = entity.name,
-        description = entity.description
+        description = null
     )
 }

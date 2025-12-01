@@ -8,16 +8,14 @@ import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpCartItem
 class LevelUpCartMapper {
 
     fun fromDto(dto: CartDto): LevelUpCart = LevelUpCart(
+        userRun = dto.userRun,
         items = dto.items.map(::itemFromDto),
-        subtotal = dto.subtotal,
-        total = dto.total
+        totalQuantity = dto.totalQuantity,
+        updatedAt = dto.updatedAt
     )
 
     private fun itemFromDto(dto: CartItemDto): LevelUpCartItem = LevelUpCartItem(
-        productCode = dto.codigo,
-        name = dto.nombre,
-        quantity = dto.cantidad,
-        unitPrice = dto.precioUnitario,
-        imageUrl = dto.imageUrl
+        productCode = dto.productCode,
+        quantity = dto.quantity
     )
 }

@@ -8,11 +8,13 @@ import com.applevelup.levepupgamerapp.domain.model.CartItem
 import com.applevelup.levepupgamerapp.domain.model.Order
 import com.applevelup.levepupgamerapp.domain.model.PaymentMethod
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpAddress
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpProduct
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpOrderRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpAddressRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpUserRepository
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpProductRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.CreateOrderInput
 import com.applevelup.levepupgamerapp.domain.repository.levelup.OrderItemInput
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,7 +45,8 @@ class CheckoutViewModel(
     private val cartRepository: LevelUpCartRepository = LevelUpDependencyContainer.cartRepository,
     private val orderRepository: LevelUpOrderRepository = LevelUpDependencyContainer.orderRepository,
     private val addressRepository: LevelUpAddressRepository = LevelUpDependencyContainer.addressRepository,
-    private val userRepository: LevelUpUserRepository = LevelUpDependencyContainer.userRepository
+    private val userRepository: LevelUpUserRepository = LevelUpDependencyContainer.userRepository,
+    private val productRepository: LevelUpProductRepository = LevelUpDependencyContainer.productRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
@@ -55,29 +59,46 @@ class CheckoutViewModel(
     )
 
     init {
-        observeCart()
+        observeCartWithProducts()
         refreshSelections()
     }
 
-    private fun observeCart() {
+    private fun observeCartWithProducts() {
         viewModelScope.launch {
-            cartRepository.observeCart().collectLatest { cart ->
-                val items = cart.items.map { item ->
-                    CartItem(
-                        id = item.productCode.hashCode(),
-                        name = item.name,
-                        price = item.unitPrice,
-                        imageUrl = item.imageUrl,
-                        quantity = item.quantity
-                    )
+            combine(
+                cartRepository.observeCart(),
+                productRepository.observeProducts()
+            ) { cart, products ->
+                Pair(cart, products)
+            }.collectLatest { (cart, products) ->
+                val productMap = products.associateBy { it.code }
+                val items = cart.items.mapNotNull { item ->
+                    val product = productMap[item.productCode]
+                    if (product != null) {
+                        CartItem(
+                            id = item.productCode.hashCode(),
+                            name = product.name,
+                            price = product.price,
+                            imageUrl = product.imageUrl,
+                            quantity = item.quantity
+                        )
+                    } else {
+                        CartItem(
+                            id = item.productCode.hashCode(),
+                            name = "Producto: ${item.productCode}",
+                            price = 0.0,
+                            imageUrl = null,
+                            quantity = item.quantity
+                        )
+                    }
                 }
-                updateTotals(items, cart.subtotal)
+                updateTotals(items)
             }
         }
     }
 
-    private fun updateTotals(items: List<CartItem>, apiSubtotal: Double) {
-        val subtotal = if (apiSubtotal > 0) apiSubtotal else items.sumOf { it.price * it.quantity }
+    private fun updateTotals(items: List<CartItem>) {
+        val subtotal = items.sumOf { it.price * it.quantity }
         val shipping = if (subtotal > 0) SHIPPING_FEE_CLP else 0.0
         val total = subtotal + shipping
         _uiState.update { state ->
@@ -94,7 +115,8 @@ class CheckoutViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingSelections = true) }
             
-            // Cargar carrito desde API
+            // Cargar carrito y productos desde API
+            productRepository.refreshProducts(force = false)
             cartRepository.refreshCart()
 
             val addressesResult = runCatching { withContext(Dispatchers.IO) { loadLevelUpAddresses() } }

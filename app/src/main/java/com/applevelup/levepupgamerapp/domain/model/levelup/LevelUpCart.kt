@@ -1,15 +1,13 @@
 package com.applevelup.levepupgamerapp.domain.model.levelup
 
 data class LevelUpCart(
+    val userRun: String = "",
     val items: List<LevelUpCartItem> = emptyList(),
-    val subtotal: Double = 0.0,
-    val total: Double = 0.0
+    val totalQuantity: Int = 0,
+    val updatedAt: String? = null
 )
 
 data class LevelUpCartItem(
     val productCode: String,
-    val name: String,
-    val quantity: Int,
-    val unitPrice: Double,
-    val imageUrl: String?
+    val quantity: Int
 )

@@ -50,8 +50,6 @@ class SessionViewModel(
                     profile?.perfil?.equals("Administrador", ignoreCase = true) == true ||
                     profile?.perfil?.equals("Vendedor", ignoreCase = true) == true
                 
-                android.util.Log.d("SessionViewModel", "JWT Roles: $rolesList, Profile perfil: ${profile?.perfil}, isSuperAdmin: $isSuperAdmin, isAdmin: $isAdmin")
-                
                 LevelUpSessionState(
                     isLoggedIn = isLoggedIn,
                     profileRole = if (isAdmin) "Administrador" else profile?.perfil,

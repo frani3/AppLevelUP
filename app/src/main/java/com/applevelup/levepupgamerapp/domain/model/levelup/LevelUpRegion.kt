@@ -1,6 +1,7 @@
 package com.applevelup.levepupgamerapp.domain.model.levelup
 
 data class LevelUpRegion(
-    val code: String,
-    val name: String
+    val id: Int,
+    val name: String,
+    val comunas: List<String>
 )

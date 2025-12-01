@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.domain.model.CartItem
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpCart
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpProduct
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -23,21 +26,28 @@ data class CartUiState(
 )
 
 class CartViewModel(
-    private val cartRepository: LevelUpCartRepository = LevelUpDependencyContainer.cartRepository
+    private val cartRepository: LevelUpCartRepository = LevelUpDependencyContainer.cartRepository,
+    private val productRepository: LevelUpProductRepository = LevelUpDependencyContainer.productRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState
 
     init {
-        observeCart()
+        observeCartWithProducts()
         refreshCart()
     }
 
-    private fun observeCart() {
+    private fun observeCartWithProducts() {
         viewModelScope.launch {
-            cartRepository.observeCart().collectLatest { cart ->
-                calculateTotals(cart)
+            // Combinar el carrito con los productos para enriquecer los datos
+            combine(
+                cartRepository.observeCart(),
+                productRepository.observeProducts()
+            ) { cart, products ->
+                Pair(cart, products)
+            }.collectLatest { (cart, products) ->
+                calculateTotals(cart, products)
             }
         }
     }
@@ -45,6 +55,8 @@ class CartViewModel(
     private fun refreshCart() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
+            // Asegurar que tenemos los productos cargados
+            productRepository.refreshProducts(force = false)
             when (val result = cartRepository.refreshCart()) {
                 is LevelUpResult.Success -> {
                     _uiState.update { it.copy(isLoading = false) }
@@ -56,17 +68,32 @@ class CartViewModel(
         }
     }
 
-    private fun calculateTotals(cart: LevelUpCart) {
-        val items = cart.items.map { item ->
-            CartItem(
-                id = item.productCode.hashCode(), // Para compatibilidad con UI existente
-                name = item.name,
-                price = item.unitPrice,
-                imageUrl = item.imageUrl,
-                quantity = item.quantity
-            )
+    private fun calculateTotals(cart: LevelUpCart, products: List<LevelUpProduct>) {
+        val productMap = products.associateBy { it.code }
+        
+        val items = cart.items.mapNotNull { item ->
+            val product = productMap[item.productCode]
+            if (product != null) {
+                CartItem(
+                    id = item.productCode.hashCode(),
+                    name = product.name,
+                    price = product.price,
+                    imageUrl = product.imageUrl,
+                    quantity = item.quantity
+                )
+            } else {
+                // Si no encontramos el producto, mostrar con datos mínimos
+                CartItem(
+                    id = item.productCode.hashCode(),
+                    name = "Producto: ${item.productCode}",
+                    price = 0.0,
+                    imageUrl = null,
+                    quantity = item.quantity
+                )
+            }
         }
-        val subtotal = cart.subtotal
+        
+        val subtotal = items.sumOf { it.price * it.quantity }
         val shipping = if (subtotal > 0) SHIPPING_FEE_CLP else 0.0
         val total = subtotal + shipping
         _uiState.update { it.copy(items = items, subtotal = subtotal, shippingCost = shipping, total = total) }

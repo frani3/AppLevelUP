@@ -1,26 +1,35 @@
 package com.applevelup.levepupgamerapp.data.network.dto
 
-import com.google.gson.annotations.SerializedName
-
+/**
+ * Response DTO for GET /carts/me and PUT /carts/me
+ */
 data class CartDto(
+    val userRun: String,
     val items: List<CartItemDto>,
-    val subtotal: Double,
-    val total: Double
+    val totalQuantity: Int,
+    val updatedAt: String?
 )
 
+/**
+ * Item in cart response
+ */
 data class CartItemDto(
-    val codigo: String,
-    val nombre: String,
-    val cantidad: Int,
-    val precioUnitario: Double,
-    val imageUrl: String?
+    val productCode: String,
+    val quantity: Int
 )
 
+/**
+ * Request DTO for PUT /carts/me
+ */
 data class UpdateCartRequestDto(
-    val items: List<CartItemRequestDto>
+    val items: List<CartItemRequestDto>,
+    val forceReplace: Boolean = false
 )
 
+/**
+ * Item in cart request
+ */
 data class CartItemRequestDto(
-    val codigo: String,
-    val cantidad: Int
+    val productCode: String,
+    val quantity: Int
 )

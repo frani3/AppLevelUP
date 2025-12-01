@@ -6,12 +6,14 @@ import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpRegion
 
 class LevelUpRegionMapper {
     fun fromDto(dto: RegionDto): LevelUpRegionEntity = LevelUpRegionEntity(
-        code = dto.codigo,
-        name = dto.nombre
+        id = dto.id,
+        name = dto.nombre,
+        comunas = dto.comunas
     )
 
     fun toDomain(entity: LevelUpRegionEntity): LevelUpRegion = LevelUpRegion(
-        code = entity.code,
-        name = entity.name
+        id = entity.id,
+        name = entity.name,
+        comunas = entity.comunas
     )
 }

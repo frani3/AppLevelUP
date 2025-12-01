@@ -49,6 +49,9 @@ class ProductDetailViewModel(
     fun loadProduct(productId: Int) {
         viewModelScope.launch {
             try {
+                // Asegurar que hay productos en el cache
+                productRepository.refreshProducts(force = false)
+                
                 // Buscar producto en el cache de LevelUp por ID (hash del código)
                 val products = productRepository.observeProducts().first()
                 val levelUpProduct = products.find { it.id == productId }

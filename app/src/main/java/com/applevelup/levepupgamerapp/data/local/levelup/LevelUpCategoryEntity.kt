@@ -5,7 +5,6 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "levelup_categories")
 data class LevelUpCategoryEntity(
-    @PrimaryKey val id: String,
-    val name: String,
-    val description: String?
+    @PrimaryKey val id: Int,
+    val name: String
 )

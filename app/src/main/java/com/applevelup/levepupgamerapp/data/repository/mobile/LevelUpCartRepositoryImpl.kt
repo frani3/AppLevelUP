@@ -31,13 +31,13 @@ class LevelUpCartRepositoryImpl(
 
     override suspend fun addItem(productCode: String, quantity: Int): LevelUpResult<LevelUpCart> {
         return updateCartItems { currentItems ->
-            val existing = currentItems.find { it.codigo == productCode }
+            val existing = currentItems.find { it.productCode == productCode }
             if (existing != null) {
                 currentItems.map {
-                    if (it.codigo == productCode) it.copy(cantidad = it.cantidad + quantity) else it
+                    if (it.productCode == productCode) it.copy(quantity = it.quantity + quantity) else it
                 }
             } else {
-                currentItems + CartItemRequestDto(codigo = productCode, cantidad = quantity)
+                currentItems + CartItemRequestDto(productCode = productCode, quantity = quantity)
             }
         }
     }
@@ -45,10 +45,10 @@ class LevelUpCartRepositoryImpl(
     override suspend fun updateItemQuantity(productCode: String, quantity: Int): LevelUpResult<LevelUpCart> {
         return updateCartItems { currentItems ->
             if (quantity <= 0) {
-                currentItems.filter { it.codigo != productCode }
+                currentItems.filter { it.productCode != productCode }
             } else {
                 currentItems.map {
-                    if (it.codigo == productCode) it.copy(cantidad = quantity) else it
+                    if (it.productCode == productCode) it.copy(quantity = quantity) else it
                 }
             }
         }
@@ -56,7 +56,7 @@ class LevelUpCartRepositoryImpl(
 
     override suspend fun removeItem(productCode: String): LevelUpResult<LevelUpCart> {
         return updateCartItems { currentItems ->
-            currentItems.filter { it.codigo != productCode }
+            currentItems.filter { it.productCode != productCode }
         }
     }
 
@@ -73,7 +73,7 @@ class LevelUpCartRepositoryImpl(
     ): LevelUpResult<LevelUpCart> {
         return runCatching {
             val currentItems = cachedCart.value.items.map {
-                CartItemRequestDto(codigo = it.productCode, cantidad = it.quantity)
+                CartItemRequestDto(productCode = it.productCode, quantity = it.quantity)
             }
             val newItems = transform(currentItems)
             val dto = api.updateCart(UpdateCartRequestDto(items = newItems))

@@ -48,8 +48,6 @@ class SessionTokenProvider(
             val decodedBytes = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_WRAP)
             val json = JSONObject(String(decodedBytes, Charsets.UTF_8))
             
-            android.util.Log.d("SessionTokenProvider", "JWT Payload: $json")
-            
             // El claim 'roles' es un array de strings
             val rolesArray = json.optJSONArray("roles")
             val roles = mutableListOf<String>()
@@ -59,12 +57,9 @@ class SessionTokenProvider(
                 }
             }
             
-            android.util.Log.d("SessionTokenProvider", "JWT Roles: $roles")
-            
             // Retornar roles separados por coma para procesarlos después
             roles.joinToString(",").takeIf { it.isNotBlank() }
         } catch (e: Exception) {
-            android.util.Log.e("SessionTokenProvider", "Error extracting roles", e)
             null
         }
     }
