@@ -68,12 +68,22 @@ class LevelUpAddressRepositoryImpl(
 
     override suspend fun setPrimaryAddress(run: String, addressId: String): LevelUpResult<Unit> {
         return runCatching {
-            // El endpoint devuelve la dirección actualizada, no una lista
-            api.setPrimaryAddress(run, addressId)
-            // Refrescar todas las direcciones para obtener el estado actualizado
-            refreshAddresses(run, force = true)
+            // El endpoint devuelve la dirección actualizada
+            val response = api.setPrimaryAddress(run, addressId)
+            android.util.Log.d("AddressRepo", "setPrimary response: id=${response.id}, isPrimary=${response.isPrimary}")
+            
+            // Obtener las direcciones actualizadas desde la API
+            val updatedAddresses = api.getAddresses(run)
+            android.util.Log.d("AddressRepo", "getAddresses after setPrimary: ${updatedAddresses.map { "${it.id}:${it.isPrimary}" }}")
+            
+            // Limpiar y guardar las direcciones actualizadas
+            persistRun(run, updatedAddresses, clearBeforeInsert = true)
+            
             LevelUpResult.Success(Unit)
-        }.getOrElse { LevelUpResult.Failure(it) }
+        }.getOrElse { 
+            android.util.Log.e("AddressRepo", "setPrimary error", it)
+            LevelUpResult.Failure(it) 
+        }
     }
 
     private suspend fun persistRun(run: String, addresses: List<AddressDto>, clearBeforeInsert: Boolean = false) {
