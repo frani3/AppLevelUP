@@ -3,12 +3,11 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
-import com.applevelup.levepupgamerapp.domain.usecase.ObserveSessionUseCase
+import com.applevelup.levepupgamerapp.data.sync.LevelUpLegacyUserSyncer
 import com.applevelup.levepupgamerapp.domain.usecase.ValidateUserLoginUseCase
+import com.applevelup.levepupgamerapp.domain.sync.LegacyUserSyncer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -22,38 +21,16 @@ data class LoginUiState(
 )
 
 class LoginViewModel(
-    private val sessionRepository: SessionRepositoryImpl = SessionRepositoryImpl()
+    private val legacyUserSyncer: LegacyUserSyncer = LevelUpLegacyUserSyncer
 ) : ViewModel() {
 
     private val validateLoginUseCase = ValidateUserLoginUseCase(
         LevelUpDependencyContainer.authRepository,
-        sessionRepository
+        legacyUserSyncer
     )
-    private val observeSessionUseCase = ObserveSessionUseCase(sessionRepository)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
-
-    init {
-        viewModelScope.launch {
-            observeSessionUseCase().collect { session ->
-                _uiState.update { state ->
-                    val email = when {
-                        session.rememberMe && state.email.isBlank() -> session.email.orEmpty()
-                        !session.rememberMe && !session.isLoggedIn -> ""
-                        else -> state.email
-                    }
-
-                    state.copy(
-                        email = email,
-                        rememberMe = session.rememberMe,
-                        isLoginSuccessful = session.isLoggedIn,
-                        errorMessage = if (session.isLoggedIn) null else state.errorMessage
-                    )
-                }
-            }
-        }
-    }
 
     fun onEmailChange(newEmail: String) {
         _uiState.update { it.copy(email = newEmail) }

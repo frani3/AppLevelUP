@@ -2,12 +2,12 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.applevelup.levepupgamerapp.data.repository.CartRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.FavoritesRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.ProductRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.domain.model.Product
-import com.applevelup.levepupgamerapp.domain.usecase.AddToCartUseCase
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
 import com.applevelup.levepupgamerapp.domain.usecase.ObserveFavoriteProductsUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.ToggleFavoriteUseCase
 import com.applevelup.levepupgamerapp.domain.repository.FavoritesRepository
@@ -33,10 +33,7 @@ class FavoritesViewModel(
         ProductRepositoryImpl()
     ),
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase = ToggleFavoriteUseCase(favoritesRepository),
-    private val addToCartUseCase: AddToCartUseCase = AddToCartUseCase(
-        CartRepositoryImpl(),
-        SessionRepositoryImpl()
-    )
+    private val cartRepository: LevelUpCartRepository = LevelUpDependencyContainer.cartRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FavoritesUiState())
@@ -72,10 +69,20 @@ class FavoritesViewModel(
         }
     }
 
-    fun addProductToCart(productId: Int) {
+    fun addProductToCart(productCode: String) {
         viewModelScope.launch {
-            addToCartUseCase(productId)
-            _events.emit(FavoritesEvent.ItemAddedToCart)
+            when (val result = cartRepository.addItem(productCode, 1)) {
+                is LevelUpResult.Success -> _events.emit(FavoritesEvent.ItemAddedToCart)
+                is LevelUpResult.Failure -> _uiState.update { it.copy(errorMessage = result.throwable.message) }
+            }
+        }
+    }
+    
+    // Sobrecarga para compatibilidad con código existente que usa productId
+    fun addProductToCart(productId: Int) {
+        val product = _uiState.value.favorites.find { it.id == productId }
+        if (product != null) {
+            addProductToCart(product.code)
         }
     }
 }

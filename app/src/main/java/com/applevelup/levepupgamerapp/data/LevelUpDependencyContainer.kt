@@ -2,7 +2,9 @@ package com.applevelup.levepupgamerapp.data
 
 import com.applevelup.levepupgamerapp.LevelUpApplication
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpAddressMapper
+import com.applevelup.levepupgamerapp.data.mapper.LevelUpCartMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpCategoryMapper
+import com.applevelup.levepupgamerapp.data.mapper.LevelUpOrderMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpProductMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpRegionMapper
 import com.applevelup.levepupgamerapp.data.mapper.LevelUpStatsMapper
@@ -10,20 +12,26 @@ import com.applevelup.levepupgamerapp.data.mapper.LevelUpUserMapper
 import com.applevelup.levepupgamerapp.data.network.LevelUpMobileApi
 import com.applevelup.levepupgamerapp.data.network.LevelUpNetworkModule
 import com.applevelup.levepupgamerapp.data.network.session.SessionTokenProvider
+import com.applevelup.levepupgamerapp.data.sync.LevelUpLegacyUserSyncer
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpAddressRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpAuthRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpCartRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpCategoryRepositoryImpl
+import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpOrderRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpProductRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpRegionRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpStatsRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.mobile.LevelUpUserRepositoryImpl
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpAddressRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpAuthRepository
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCategoryRepository
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpOrderRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpProductRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpRegionRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpStatsRepository
 import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpUserRepository
+import com.applevelup.levepupgamerapp.domain.sync.LegacyUserSyncer
 
 object LevelUpDependencyContainer {
 
@@ -37,10 +45,16 @@ object LevelUpDependencyContainer {
     private val categoryMapper by lazy { LevelUpCategoryMapper() }
     private val regionMapper by lazy { LevelUpRegionMapper() }
     private val addressMapper by lazy { LevelUpAddressMapper() }
+    private val cartMapper by lazy { LevelUpCartMapper() }
+    private val orderMapper by lazy { LevelUpOrderMapper() }
 
     private val tokenProvider by lazy {
         SessionTokenProvider(application.sessionPreferencesDataSource)
     }
+
+    val sessionTokenProvider: SessionTokenProvider get() = tokenProvider
+
+    private val legacyUserSyncer: LegacyUserSyncer by lazy { LevelUpLegacyUserSyncer }
 
     private val mobileApi by lazy {
         LevelUpNetworkModule.createApi(tokenProvider)
@@ -53,7 +67,7 @@ object LevelUpDependencyContainer {
     }
 
     val userRepository: LevelUpUserRepository by lazy {
-        LevelUpUserRepositoryImpl(mobileApi, userMapper)
+        LevelUpUserRepositoryImpl(mobileApi, userMapper, legacyUserSyncer)
     }
 
     val productRepository: LevelUpProductRepository by lazy {
@@ -94,5 +108,13 @@ object LevelUpDependencyContainer {
 
     val statsRepository: LevelUpStatsRepository by lazy {
         LevelUpStatsRepositoryImpl(mobileApi, statsMapper)
+    }
+
+    val cartRepository: LevelUpCartRepository by lazy {
+        LevelUpCartRepositoryImpl(mobileApi, cartMapper)
+    }
+
+    val orderRepository: LevelUpOrderRepository by lazy {
+        LevelUpOrderRepositoryImpl(mobileApi, orderMapper)
     }
 }

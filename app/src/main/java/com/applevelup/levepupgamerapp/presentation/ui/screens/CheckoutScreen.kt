@@ -286,6 +286,9 @@ private fun PaymentSummary(payment: PaymentMethod?, isLoading: Boolean) {
             val cardLabel = when (payment.cardType) {
                 CardType.VISA -> "Visa"
                 CardType.MASTERCARD -> "MasterCard"
+                CardType.DEBIT -> "Débito"
+                CardType.CASH -> "Efectivo"
+                CardType.TRANSFER -> "Transferencia"
                 CardType.OTHER -> "Tarjeta"
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

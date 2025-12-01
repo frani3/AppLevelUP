@@ -3,17 +3,23 @@ package com.applevelup.levepupgamerapp.data.network
 import com.applevelup.levepupgamerapp.data.network.dto.AuthResponseDto
 import com.applevelup.levepupgamerapp.data.network.dto.AddressDto
 import com.applevelup.levepupgamerapp.data.network.dto.AddressRequestDto
+import com.applevelup.levepupgamerapp.data.network.dto.CartDto
 import com.applevelup.levepupgamerapp.data.network.dto.CategoryDto
+import com.applevelup.levepupgamerapp.data.network.dto.CreateOrderRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.CreateProductRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.LevelUpStatsDto
 import com.applevelup.levepupgamerapp.data.network.dto.LoginRequestDto
+import com.applevelup.levepupgamerapp.data.network.dto.OrderDto
 import com.applevelup.levepupgamerapp.data.network.dto.ProductDto
 import com.applevelup.levepupgamerapp.data.network.dto.RegisterRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.RegionDto
+import com.applevelup.levepupgamerapp.data.network.dto.UpdateCartRequestDto
+import com.applevelup.levepupgamerapp.data.network.dto.UpdateProfileRequestDto
 import com.applevelup.levepupgamerapp.data.network.dto.UserProfileDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -29,6 +35,9 @@ interface LevelUpMobileApi {
 
     @GET("/api/v1/users/me")
     suspend fun getProfile(): UserProfileDto
+
+    @PUT("/api/v1/users/me")
+    suspend fun updateProfile(@Body request: UpdateProfileRequestDto): UserProfileDto
 
     @GET("/api/v1/levelup/{run}/stats")
     suspend fun getLevelUpStats(@Path("run") run: String): LevelUpStatsDto
@@ -79,4 +88,24 @@ interface LevelUpMobileApi {
         @Path("run") run: String,
         @Path("addressId") addressId: String
     ): List<AddressDto>
+
+    // Cart endpoints
+    @GET("/api/v1/carts/me")
+    suspend fun getCart(): CartDto
+
+    @PUT("/api/v1/carts/me")
+    suspend fun updateCart(@Body request: UpdateCartRequestDto): CartDto
+
+    @DELETE("/api/v1/carts/me")
+    suspend fun clearCart()
+
+    // Order endpoints
+    @POST("/api/v1/orders")
+    suspend fun createOrder(@Body request: CreateOrderRequestDto): OrderDto
+
+    @GET("/api/v1/orders")
+    suspend fun getOrders(
+        @Query("userEmail") userEmail: String? = null,
+        @Query("status") status: String? = null
+    ): List<OrderDto>
 }

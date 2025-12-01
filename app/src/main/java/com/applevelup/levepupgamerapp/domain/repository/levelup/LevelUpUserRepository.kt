@@ -7,5 +7,10 @@ import kotlinx.coroutines.flow.Flow
 interface LevelUpUserRepository {
     fun observeProfile(): Flow<LevelUpUserProfile?>
     suspend fun refreshProfile(): LevelUpResult<LevelUpUserProfile>
-    fun cacheProfile(profile: LevelUpUserProfile)
+    suspend fun cacheProfile(profile: LevelUpUserProfile)
+    suspend fun updateProfile(
+        name: String,
+        email: String,
+        newPassword: String?
+    ): LevelUpResult<LevelUpUserProfile>
 }

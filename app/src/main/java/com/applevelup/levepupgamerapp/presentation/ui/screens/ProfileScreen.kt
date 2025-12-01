@@ -171,7 +171,18 @@ fun ProfileScreen(
                     item { Spacer(Modifier.height(24.dp)) }
                     item { StatsPanel(user = profile) }
                     item { Spacer(Modifier.height(32.dp)) }
-                    item { OrderHistory(orders = state.orders) }
+                    item { 
+                        val mappedOrders = state.orders.map { levelUpOrder ->
+                            com.applevelup.levepupgamerapp.domain.model.Order(
+                                id = levelUpOrder.id,
+                                date = levelUpOrder.createdAt,
+                                status = levelUpOrder.status,
+                                total = "$${String.format("%.2f", levelUpOrder.total)}",
+                                itemCount = levelUpOrder.items.size
+                            )
+                        }
+                        OrderHistory(orders = mappedOrders) 
+                    }
                     item { Spacer(Modifier.height(32.dp)) }
                     item {
                         SettingsMenu(

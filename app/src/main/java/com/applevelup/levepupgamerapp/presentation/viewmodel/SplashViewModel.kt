@@ -3,8 +3,8 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
-import com.applevelup.levepupgamerapp.domain.usecase.GetSessionUseCase
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
+import com.applevelup.levepupgamerapp.data.network.session.TokenProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,10 +18,8 @@ data class SplashUiState(
 )
 
 class SplashViewModel(
-    private val sessionRepo: SessionRepositoryImpl = SessionRepositoryImpl()
+    private val tokenProvider: TokenProvider = LevelUpDependencyContainer.sessionTokenProvider
 ) : ViewModel() {
-
-    private val getSessionUseCase = GetSessionUseCase(sessionRepo)
 
     private val _uiState = MutableStateFlow(SplashUiState())
     val uiState: StateFlow<SplashUiState> = _uiState
@@ -29,9 +27,9 @@ class SplashViewModel(
     init {
         viewModelScope.launch {
             delay(2000) // animación / logo
-            val session = getSessionUseCase()
-            Log.d("SplashViewModel", "session = $session")
-            val dest = if (session.isLoggedIn) SplashDestination.HOME else SplashDestination.LOGIN
+            val hasToken = tokenProvider.getToken() != null
+            Log.d("SplashViewModel", "hasToken = $hasToken")
+            val dest = if (hasToken) SplashDestination.HOME else SplashDestination.LOGIN
             _uiState.update { it.copy(destination = dest) }
         }
     }

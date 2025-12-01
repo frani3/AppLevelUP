@@ -3,7 +3,8 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.domain.model.Product
-import com.applevelup.levepupgamerapp.domain.usecase.AddToCartUseCase
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
 import com.applevelup.levepupgamerapp.domain.usecase.SearchProductsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +28,7 @@ sealed interface SearchEvent {
 
 class SearchViewModel(
     private val searchProductsUseCase: SearchProductsUseCase,
-    private val addToCartUseCase: AddToCartUseCase
+    private val cartRepository: LevelUpCartRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -87,10 +88,20 @@ class SearchViewModel(
         }
     }
 
-    fun addProductToCart(productId: Int) {
+    fun addProductToCart(productCode: String) {
         viewModelScope.launch {
-            addToCartUseCase(productId)
-            _events.emit(SearchEvent.ItemAdded)
+            when (val result = cartRepository.addItem(productCode, 1)) {
+                is LevelUpResult.Success -> _events.emit(SearchEvent.ItemAdded)
+                is LevelUpResult.Failure -> _uiState.update { it.copy(errorMessage = result.throwable.message) }
+            }
+        }
+    }
+    
+    // Sobrecarga para compatibilidad con código existente que usa productId
+    fun addProductToCart(productId: Int) {
+        val product = _uiState.value.results.find { it.id == productId }
+        if (product != null) {
+            addProductToCart(product.code)
         }
     }
 }

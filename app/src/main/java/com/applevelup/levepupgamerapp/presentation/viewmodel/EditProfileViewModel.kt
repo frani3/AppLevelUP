@@ -3,14 +3,17 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.applevelup.levepupgamerapp.data.repository.UserRepositoryImpl
-import com.applevelup.levepupgamerapp.domain.usecase.GetUserProfileUseCase
-import com.applevelup.levepupgamerapp.domain.usecase.UpdateUserProfileUseCase
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResource
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.usecase.levelup.FetchUserProfileUseCase
+import com.applevelup.levepupgamerapp.domain.usecase.levelup.UpdateLevelUpProfileUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -31,12 +34,11 @@ sealed interface EditProfileEvent {
     data object ProfileUpdated : EditProfileEvent
 }
 
-class EditProfileViewModel(
-    repository: UserRepositoryImpl = UserRepositoryImpl()
-) : ViewModel() {
+class EditProfileViewModel : ViewModel() {
 
-    private val getProfileUseCase = GetUserProfileUseCase(repository)
-    private val updateProfileUseCase = UpdateUserProfileUseCase(repository)
+    private val levelUpRepository = LevelUpDependencyContainer.userRepository
+    private val fetchProfileUseCase = FetchUserProfileUseCase(levelUpRepository)
+    private val updateProfileUseCase = UpdateLevelUpProfileUseCase(levelUpRepository)
 
     private val _uiState = MutableStateFlow(EditProfileUiState())
     val uiState: StateFlow<EditProfileUiState> = _uiState
@@ -45,9 +47,7 @@ class EditProfileViewModel(
     val events: SharedFlow<EditProfileEvent> = _events.asSharedFlow()
 
     init {
-        viewModelScope.launch {
-            loadProfile()
-        }
+        observeProfile()
     }
 
     fun onFullNameChange(value: String) {
@@ -82,58 +82,64 @@ class EditProfileViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
-            try {
-                updateProfileUseCase(
-                    fullName = state.fullName.trim(),
-                    email = state.email.trim(),
-                    newPassword = state.newPassword.takeIf { it.isNotBlank() }
-                )
-                _uiState.update {
-                    it.copy(
-                        newPassword = "",
-                        confirmPassword = "",
-                        isSaving = false,
-                        passwordError = null
-                    )
+            when (val result = updateProfileUseCase(
+                name = state.fullName.trim(),
+                email = state.email.trim(),
+                newPassword = state.newPassword.takeIf { it.isNotBlank() }
+            )) {
+                is LevelUpResult.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            newPassword = "",
+                            confirmPassword = "",
+                            isSaving = false,
+                            passwordError = null
+                        )
+                    }
+                    _events.emit(EditProfileEvent.ProfileUpdated)
                 }
-                _events.emit(EditProfileEvent.ProfileUpdated)
-            } catch (exception: Exception) {
-                _uiState.update {
+
+                is LevelUpResult.Failure -> _uiState.update {
                     it.copy(
                         isSaving = false,
-                        errorMessage = "No se pudo actualizar el perfil. Intenta nuevamente."
+                        errorMessage = result.throwable.message
+                            ?: "No se pudo actualizar el perfil. Intenta nuevamente."
                     )
                 }
             }
         }
     }
 
-    private suspend fun loadProfile() {
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-        try {
-            val profile = getProfileUseCase.getUserProfile()
-            if (profile != null) {
-                _uiState.update {
-                    it.copy(
-                        fullName = profile.name,
-                        email = profile.email,
-                        isLoading = false
-                    )
+    private fun observeProfile() {
+        viewModelScope.launch {
+            fetchProfileUseCase(forceRefresh = true).collectLatest { resource ->
+                when (resource) {
+                    LevelUpResource.Loading -> _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+                    is LevelUpResource.Error -> _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = resource.throwable.message
+                                ?: "No se pudo cargar la información del perfil."
+                        )
+                    }
+
+                    is LevelUpResource.Success -> {
+                        val profile = resource.data
+                        if (profile != null) {
+                            _uiState.update {
+                                it.copy(
+                                    fullName = profile.name,
+                                    email = profile.email,
+                                    isLoading = false,
+                                    errorMessage = null
+                                )
+                            }
+                        } else {
+                            _uiState.update { it.copy(isLoading = false) }
+                        }
+                    }
                 }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "No se pudo cargar la información del perfil."
-                    )
-                }
-            }
-        } catch (exception: Exception) {
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    errorMessage = "Ocurrió un error al cargar tu perfil."
-                )
             }
         }
     }

@@ -12,6 +12,12 @@ data class UserProfileDto(
     val levelUpStats: LevelUpStatsDto?
 )
 
+data class UpdateProfileRequestDto(
+    val nombre: String,
+    val correo: String,
+    val password: String? = null
+)
+
 data class LevelUpStatsDto(
     val points: Int,
     val exp: LevelUpExperienceDto,

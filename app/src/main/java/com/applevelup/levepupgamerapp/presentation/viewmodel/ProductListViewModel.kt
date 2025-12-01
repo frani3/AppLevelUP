@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.domain.model.ProductFilters
-import com.applevelup.levepupgamerapp.domain.usecase.AddToCartUseCase
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
 import com.applevelup.levepupgamerapp.domain.usecase.GetProductsByCategoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,7 @@ data class ProductListUiState(
 
 class ProductListViewModel(
     private val getProductsByCategory: GetProductsByCategoryUseCase,
-    private val addToCartUseCase: AddToCartUseCase
+    private val cartRepository: LevelUpCartRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductListUiState())
@@ -99,10 +100,20 @@ class ProductListViewModel(
         applyFilters(ProductFilters(categories = setOf(category)))
     }
 
-    fun addProductToCart(productId: Int) {
+    fun addProductToCart(productCode: String) {
         viewModelScope.launch {
-            addToCartUseCase(productId)
-            _events.emit(ProductListEvent.ItemAdded)
+            when (val result = cartRepository.addItem(productCode, 1)) {
+                is LevelUpResult.Success -> _events.emit(ProductListEvent.ItemAdded)
+                is LevelUpResult.Failure -> _uiState.update { it.copy(errorMessage = result.throwable.message) }
+            }
+        }
+    }
+    
+    // Sobrecarga para compatibilidad con código existente que usa productId
+    fun addProductToCart(productId: Int) {
+        val product = baseProducts.find { it.id == productId }
+        if (product != null) {
+            addProductToCart(product.code)
         }
     }
 

@@ -2,14 +2,14 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.applevelup.levepupgamerapp.data.repository.CartRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.FavoritesRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.ProductRepositoryImpl
 import com.applevelup.levepupgamerapp.data.repository.ProductReviewRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 import com.applevelup.levepupgamerapp.domain.model.Product
 import com.applevelup.levepupgamerapp.domain.model.ProductReview
-import com.applevelup.levepupgamerapp.domain.usecase.AddToCartUseCase
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpCartRepository
 import com.applevelup.levepupgamerapp.domain.usecase.GetProductByIdUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.GetProductReviewsUseCase
 import com.applevelup.levepupgamerapp.domain.usecase.ObserveFavoriteProductIdsUseCase
@@ -35,10 +35,7 @@ data class ProductDetailUiState(
 
 class ProductDetailViewModel(
     private val getProductById: GetProductByIdUseCase = GetProductByIdUseCase(ProductRepositoryImpl()),
-    private val addToCart: AddToCartUseCase = AddToCartUseCase(
-        CartRepositoryImpl(),
-        SessionRepositoryImpl()
-    ),
+    private val cartRepository: LevelUpCartRepository = LevelUpDependencyContainer.cartRepository,
     private val getProductReviews: GetProductReviewsUseCase = GetProductReviewsUseCase(ProductReviewRepositoryImpl()),
     private val observeFavoriteIds: ObserveFavoriteProductIdsUseCase = ObserveFavoriteProductIdsUseCase(FavoritesRepositoryImpl()),
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase = ToggleFavoriteUseCase(FavoritesRepositoryImpl())
@@ -91,12 +88,14 @@ class ProductDetailViewModel(
     }
 
     fun addCurrentSelectionToCart() {
-        val productId = _uiState.value.product?.id ?: return
+        val product = _uiState.value.product ?: return
         val quantity = _uiState.value.quantity
 
         viewModelScope.launch {
-            addToCart(productId, quantity)
-            _uiState.update { it.copy(addedToCart = true) }
+            when (val result = cartRepository.addItem(product.code, quantity)) {
+                is LevelUpResult.Success -> _uiState.update { it.copy(addedToCart = true) }
+                is LevelUpResult.Failure -> _uiState.update { it.copy(error = result.throwable.message) }
+            }
         }
     }
 

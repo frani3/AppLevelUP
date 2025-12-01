@@ -1,8 +1,6 @@
 package com.applevelup.levepupgamerapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.applevelup.levepupgamerapp.data.repository.PaymentRepositoryImpl
-import com.applevelup.levepupgamerapp.domain.usecase.AddPaymentMethodUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -13,16 +11,21 @@ data class AddPaymentUiState(
     val expiryDate: String = "",
     val cvv: String = "",
     val isValid: Boolean = false,
-    val showError: Boolean = false
+    val showError: Boolean = false,
+    val infoMessage: String? = null
 )
 
-class AddPaymentViewModel(
-    private val repo: PaymentRepositoryImpl = PaymentRepositoryImpl()
-) : ViewModel() {
+/**
+ * AddPaymentViewModel simplificado.
+ * La API de LevelUp no soporta métodos de pago personalizados.
+ * Este ViewModel se mantiene por compatibilidad pero no guarda tarjetas.
+ * Los pagos se procesan directamente en el checkout.
+ */
+class AddPaymentViewModel : ViewModel() {
 
-    private val addMethodUseCase = AddPaymentMethodUseCase(repo)
-
-    private val _uiState = MutableStateFlow(AddPaymentUiState())
+    private val _uiState = MutableStateFlow(AddPaymentUiState(
+        infoMessage = "Los pagos con tarjeta se procesan de forma segura al momento de la compra. No almacenamos datos de tarjetas."
+    ))
     val uiState: StateFlow<AddPaymentUiState> = _uiState
 
     fun onNameChange(value: String) {
@@ -58,14 +61,19 @@ class AddPaymentViewModel(
     }
 
     suspend fun saveCard(): Boolean {
-        val s = _uiState.value
-        if (!s.isValid) {
-            _uiState.update { it.copy(showError = true) }
-            return false
+        // La API no soporta guardar métodos de pago
+        // Informamos al usuario que los pagos se procesan en el checkout
+        _uiState.update { 
+            it.copy(
+                infoMessage = "Los pagos se procesan al momento de la compra. Tu tarjeta no será almacenada.",
+                showError = false
+            ) 
         }
-        val method = addMethodUseCase(s.cardholderName, s.cardNumber, s.expiryDate)
-        repo.setDefaultPaymentMethod(method.id)
-        _uiState.value = AddPaymentUiState()
+        // Retornamos true para permitir navegar de vuelta
         return true
+    }
+    
+    fun clearMessage() {
+        _uiState.update { it.copy(infoMessage = null) }
     }
 }

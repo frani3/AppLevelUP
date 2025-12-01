@@ -4,34 +4,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.applevelup.levepupgamerapp.R
 import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
-import com.applevelup.levepupgamerapp.data.repository.UserRepositoryImpl
-import com.applevelup.levepupgamerapp.domain.model.Order
 import com.applevelup.levepupgamerapp.domain.model.UserProfile
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpOrder
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpUserProfile
-import com.applevelup.levepupgamerapp.domain.usecase.GetUserProfileUseCase
-import com.applevelup.levepupgamerapp.domain.usecase.levelup.FetchUserProfileUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class UserUiState(
     val profile: UserProfile? = null,
-    val orders: List<Order> = emptyList(),
+    val orders: List<LevelUpOrder> = emptyList(),
     val isLoading: Boolean = true
 )
 
-class UserViewModel(
-    private val useCase: GetUserProfileUseCase = GetUserProfileUseCase(UserRepositoryImpl())
-) : ViewModel() {
+class UserViewModel : ViewModel() {
 
     private val levelUpRepository = LevelUpDependencyContainer.userRepository
-    private val fetchLevelUpProfile = FetchUserProfileUseCase(levelUpRepository)
     private val authRepository = LevelUpDependencyContainer.authRepository
+    private val orderRepository = LevelUpDependencyContainer.orderRepository
 
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState
@@ -44,20 +39,21 @@ class UserViewModel(
 
     init {
         observeLevelUpProfile()
+        observeOrders()
         loadUserData()
     }
 
     fun loadUserData() {
         viewModelScope.launch {
-            val orders = useCase.getOrders()
-            _uiState.update { it.copy(orders = orders, isLoading = false) }
-            refreshLevelUpProfile()
+            _uiState.update { it.copy(isLoading = true) }
+            levelUpRepository.refreshProfile()
+            orderRepository.refreshOrders()
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
     fun logout() {
         viewModelScope.launch {
-            useCase.logout()
             authRepository.logout()
             _logoutEvents.emit(Unit)
         }
@@ -65,14 +61,8 @@ class UserViewModel(
 
     fun updateProfilePhoto(photoUri: String) {
         viewModelScope.launch {
-            runCatching {
-                useCase.updateProfilePhoto(photoUri)
-            }.onSuccess {
-                loadUserData()
-                _messages.emit("Foto de perfil actualizada")
-            }.onFailure {
-                _messages.emit("No se pudo actualizar la foto de perfil")
-            }
+            // TODO: Implementar endpoint de actualización de foto en API
+            _messages.emit("Función no disponible aún")
         }
     }
 
@@ -85,10 +75,10 @@ class UserViewModel(
         }
     }
 
-    private fun refreshLevelUpProfile(force: Boolean = true) {
+    private fun observeOrders() {
         viewModelScope.launch {
-            runCatching {
-                fetchLevelUpProfile(force).first()
+            orderRepository.observeOrders().collectLatest { orders ->
+                _uiState.update { it.copy(orders = orders) }
             }
         }
     }

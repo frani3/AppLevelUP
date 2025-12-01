@@ -1,18 +1,22 @@
 package com.applevelup.levepupgamerapp.domain.usecase
 
-import com.applevelup.levepupgamerapp.domain.exceptions.EmailAlreadyInUseException
-import com.applevelup.levepupgamerapp.domain.model.SessionState
-import com.applevelup.levepupgamerapp.domain.model.User
-import com.applevelup.levepupgamerapp.domain.repository.SessionRepository
-import com.applevelup.levepupgamerapp.domain.repository.UserRepository
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpUserProfile
+import com.applevelup.levepupgamerapp.domain.model.levelup.RegistrationData
+import com.applevelup.levepupgamerapp.domain.repository.levelup.LevelUpAuthRepository
+import com.applevelup.levepupgamerapp.domain.sync.LegacyUserSyncer
 
+/**
+ * Use case para registro de usuario con LevelUp API.
+ * El token JWT se persiste automáticamente en LevelUpAuthRepository.
+ */
 class RegisterUserUseCase(
-	private val userRepository: UserRepository,
-	private val sessionRepository: SessionRepository
+	private val authRepository: LevelUpAuthRepository,
+	private val legacyUserSyncer: LegacyUserSyncer
 ) {
 
 	sealed class Result {
-		data class Success(val user: User) : Result()
+		data class Success(val profile: LevelUpUserProfile) : Result()
 		data class Error(val message: String) : Result()
 	}
 
@@ -28,37 +32,29 @@ class RegisterUserUseCase(
 		address: String,
 		referralCode: String?
 	): Result {
-		return try {
-			val user = userRepository.register(
-				firstName = firstName,
-				lastName = lastName,
-				run = run,
-				email = email,
-				password = password,
-				birthDate = birthDate,
-				region = region,
-				comuna = comuna,
-				address = address,
-				referralCode = referralCode
-			)
-			sessionRepository.saveSession(
-				SessionState(
-					isLoggedIn = true,
-					userId = user.id,
-					email = user.email,
-					fullName = user.fullName,
-					rememberMe = true,
-					profileRole = user.profileRole,
-					isSuperAdmin = user.isSuperAdmin
-				)
-			)
-			Result.Success(user)
-		} catch (emailInUse: EmailAlreadyInUseException) {
-			Result.Error("El correo ya está registrado")
-		} catch (invalid: IllegalArgumentException) {
-			Result.Error(invalid.message ?: "Datos inválidos")
-		} catch (_: Exception) {
-			Result.Error("No pudimos crear tu cuenta. Intenta nuevamente")
+		val trimmedName = listOf(firstName, lastName)
+			.map { it.trim() }
+			.filter { it.isNotEmpty() }
+			.joinToString(" ")
+
+		val registrationData = RegistrationData(
+			run = run,
+			nombre = trimmedName,
+			correo = email,
+			password = password,
+			direccion = address,
+			region = region,
+			comuna = comuna,
+			referralCode = referralCode
+		)
+
+		return when (val result = authRepository.register(registrationData)) {
+			is LevelUpResult.Success -> {
+				// Sincronizar con cache local para UI legacy
+				legacyUserSyncer.replaceWith(result.data)
+				Result.Success(result.data)
+			}
+			is LevelUpResult.Failure -> Result.Error(result.throwable.message ?: "No pudimos crear tu cuenta. Intenta nuevamente")
 		}
 	}
 }

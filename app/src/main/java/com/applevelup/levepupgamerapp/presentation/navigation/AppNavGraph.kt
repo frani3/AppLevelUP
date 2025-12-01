@@ -26,16 +26,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.applevelup.levepupgamerapp.presentation.ui.screens.*
 import androidx.compose.animation.ExperimentalAnimationApi
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavGraph(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val sessionRepository = remember { SessionRepositoryImpl() }
-    val startDestination by produceState<String?>(initialValue = null, sessionRepository) {
-        val session = sessionRepository.getSession()
-        value = if (session.isLoggedIn) Destinations.Landing.route else Destinations.Login.route
+    val sessionTokenProvider = remember { LevelUpDependencyContainer.sessionTokenProvider }
+    val startDestination by produceState<String?>(initialValue = null, sessionTokenProvider) {
+        val isLoggedIn = sessionTokenProvider.getToken() != null
+        value = if (isLoggedIn) Destinations.Landing.route else Destinations.Login.route
     }
 
     val resolvedStartDestination = startDestination ?: run {

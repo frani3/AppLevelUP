@@ -2,10 +2,8 @@ package com.applevelup.levepupgamerapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.applevelup.levepupgamerapp.data.repository.AddressRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.PaymentRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.SessionRepositoryImpl
-import com.applevelup.levepupgamerapp.data.repository.UserRepositoryImpl
+import com.applevelup.levepupgamerapp.data.LevelUpDependencyContainer
+import com.applevelup.levepupgamerapp.data.sync.LevelUpLegacyUserSyncer
 import com.applevelup.levepupgamerapp.domain.usecase.RegisterUserUseCase
 import com.applevelup.levepupgamerapp.utils.RunUtils
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,11 +68,9 @@ data class FormErrors(
 
 class RegistroViewModel(
     private val registerUserUseCase: RegisterUserUseCase = RegisterUserUseCase(
-        UserRepositoryImpl(),
-        SessionRepositoryImpl()
-    ),
-    private val addressRepository: AddressRepositoryImpl = AddressRepositoryImpl(),
-    private val paymentRepository: PaymentRepositoryImpl = PaymentRepositoryImpl()
+        LevelUpDependencyContainer.authRepository,
+        LevelUpLegacyUserSyncer
+    )
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RegistroUiState())
@@ -325,12 +321,7 @@ class RegistroViewModel(
 
             when (result) {
                 is RegisterUserUseCase.Result.Success -> {
-                    if (state.address.isNotBlank()) {
-                        addressRepository.setPrimaryAddress(state.address.trim())
-                    } else {
-                        addressRepository.clearAll()
-                    }
-                    paymentRepository.clearPaymentMethods()
+                    // Ya no usamos paymentRepository local
                     _uiState.update {
                         it.copy(
                             isLoading = false,

@@ -5,17 +5,13 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.applevelup.levepupgamerapp.data.local.dao.CacheMetadataDao
-import com.applevelup.levepupgamerapp.data.local.dao.CartDao
 import com.applevelup.levepupgamerapp.data.local.dao.LevelUpAddressDao
 import com.applevelup.levepupgamerapp.data.local.dao.LevelUpCategoryDao
 import com.applevelup.levepupgamerapp.data.local.dao.LevelUpProductDao
 import com.applevelup.levepupgamerapp.data.local.dao.LevelUpRegionDao
-import com.applevelup.levepupgamerapp.data.local.dao.PaymentMethodDao
 import com.applevelup.levepupgamerapp.data.local.dao.ProductDao
 import com.applevelup.levepupgamerapp.data.local.dao.UserDao
 import com.applevelup.levepupgamerapp.data.local.cache.CacheMetadataEntity
-import com.applevelup.levepupgamerapp.data.local.entity.CartItemEntity
-import com.applevelup.levepupgamerapp.data.local.entity.PaymentMethodEntity
 import com.applevelup.levepupgamerapp.data.local.entity.ProductEntity
 import com.applevelup.levepupgamerapp.data.local.entity.UserEntity
 import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpAddressEntity
@@ -26,24 +22,20 @@ import com.applevelup.levepupgamerapp.data.local.levelup.LevelUpRegionEntity
 @Database(
 	entities = [
 		ProductEntity::class,
-		CartItemEntity::class,
 		UserEntity::class,
-		PaymentMethodEntity::class,
 		LevelUpProductEntity::class,
 		LevelUpCategoryEntity::class,
 		LevelUpRegionEntity::class,
 		LevelUpAddressEntity::class,
 		CacheMetadataEntity::class
 	],
-	version = 7,
+	version = 8,
 	exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
 
 	abstract fun productDao(): ProductDao
-	abstract fun cartDao(): CartDao
 	abstract fun userDao(): UserDao
-	abstract fun paymentMethodDao(): PaymentMethodDao
 	abstract fun levelUpProductDao(): LevelUpProductDao
 	abstract fun levelUpCategoryDao(): LevelUpCategoryDao
 	abstract fun levelUpRegionDao(): LevelUpRegionDao
