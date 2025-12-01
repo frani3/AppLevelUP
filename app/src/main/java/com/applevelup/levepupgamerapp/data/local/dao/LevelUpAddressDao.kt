@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LevelUpAddressDao {
 
-    @Query("SELECT * FROM levelup_addresses WHERE run = :run ORDER BY isPrimary DESC, alias ASC")
+    @Query("SELECT * FROM levelup_addresses WHERE userRun = :run ORDER BY isPrimary DESC, fullName ASC")
     fun observeAddresses(run: String): Flow<List<LevelUpAddressEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -19,9 +19,9 @@ interface LevelUpAddressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAddress(address: LevelUpAddressEntity)
 
-    @Query("DELETE FROM levelup_addresses WHERE run = :run AND id = :id")
+    @Query("DELETE FROM levelup_addresses WHERE userRun = :run AND id = :id")
     suspend fun deleteAddress(run: String, id: String)
 
-    @Query("DELETE FROM levelup_addresses WHERE run = :run")
+    @Query("DELETE FROM levelup_addresses WHERE userRun = :run")
     suspend fun clearForRun(run: String)
 }

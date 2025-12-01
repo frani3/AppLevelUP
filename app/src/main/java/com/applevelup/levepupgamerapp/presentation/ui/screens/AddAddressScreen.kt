@@ -75,7 +75,7 @@ fun AddAddressScreen(
 
     LaunchedEffect(state.showValidationErrors, state.isValid) {
         if (state.showValidationErrors && !state.isValid) {
-            snackbarHostState.showSnackbar("Alias, dirección, comuna y región son obligatorios")
+            snackbarHostState.showSnackbar("Nombre, dirección, ciudad y región son obligatorios")
         }
     }
 
@@ -155,7 +155,7 @@ fun AddAddressScreen(
 
             if (state.showValidationErrors && !state.isValid) {
                 Text(
-                    "Alias, dirección, comuna y región son obligatorios",
+                    "Nombre, dirección, ciudad y región son obligatorios",
                     color = Color.Red,
                     modifier = Modifier.padding(top = 12.dp)
                 )
@@ -177,9 +177,9 @@ fun AddAddressScreen(
 private fun AddressForm(state: AddAddressUiState, viewModel: AddAddressViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = state.alias,
-            onValueChange = viewModel::onAliasChange,
-            label = { Text("Alias (ej. Casa, Oficina)") },
+            value = state.fullName,
+            onValueChange = viewModel::onFullNameChange,
+            label = { Text("Nombre completo") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             colors = addressTextFieldColors(),
@@ -187,8 +187,8 @@ private fun AddressForm(state: AddAddressUiState, viewModel: AddAddressViewModel
         )
 
         OutlinedTextField(
-            value = state.street,
-            onValueChange = viewModel::onStreetChange,
+            value = state.line1,
+            onValueChange = viewModel::onLine1Change,
             label = { Text("Dirección") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
@@ -197,19 +197,9 @@ private fun AddressForm(state: AddAddressUiState, viewModel: AddAddressViewModel
         )
 
         OutlinedTextField(
-            value = state.number,
-            onValueChange = viewModel::onNumberChange,
-            label = { Text("Número (opcional)") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            colors = addressTextFieldColors(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = state.comuna,
-            onValueChange = viewModel::onComunaChange,
-            label = { Text("Comuna") },
+            value = state.city,
+            onValueChange = viewModel::onCityChange,
+            label = { Text("Ciudad/Comuna") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
             colors = addressTextFieldColors(),
@@ -222,17 +212,6 @@ private fun AddressForm(state: AddAddressUiState, viewModel: AddAddressViewModel
             label = { Text("Región") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            colors = addressTextFieldColors(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = state.details,
-            onValueChange = viewModel::onDetailsChange,
-            label = { Text("Detalles adicionales (opcional)") },
-            minLines = 2,
-            maxLines = 3,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             colors = addressTextFieldColors(),
             modifier = Modifier.fillMaxWidth()
         )

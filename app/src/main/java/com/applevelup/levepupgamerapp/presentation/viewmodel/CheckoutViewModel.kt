@@ -292,23 +292,13 @@ class CheckoutViewModel(
 
 private fun LevelUpAddress.toLegacyAddress(): Address {
     val computedId = id.toIntOrNull() ?: id.hashCode()
-    val streetLine = buildString {
-        append(street)
-        numero?.takeIf { it.isNotBlank() }?.let {
-            append(" #").append(it)
-        }
-    }
-    val cityLine = listOfNotNull(
-        comuna.takeIf { it.isNotBlank() },
-        region.takeIf { it.isNotBlank() }
-    ).joinToString(separator = " · ")
 
     return Address(
         id = computedId,
-        alias = alias.ifBlank { "Dirección" },
-        street = streetLine,
-        city = cityLine,
-        details = complement.orEmpty(),
+        alias = fullName.ifBlank { "Dirección" },
+        street = line1,
+        city = "$city · $region",
+        details = "",
         isDefault = isPrimary
     )
 }

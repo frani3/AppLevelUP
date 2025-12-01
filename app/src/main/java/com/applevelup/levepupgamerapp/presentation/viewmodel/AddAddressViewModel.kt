@@ -7,12 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 data class AddAddressUiState(
-    val alias: String = "",
-    val street: String = "",
-    val number: String = "",
-    val comuna: String = "",
+    val fullName: String = "",
+    val line1: String = "",
+    val city: String = "",
     val region: String = "",
-    val details: String = "",
     val setAsDefault: Boolean = true,
     val isValid: Boolean = false,
     val showValidationErrors: Boolean = false,
@@ -24,32 +22,24 @@ class AddAddressViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AddAddressUiState())
     val uiState: StateFlow<AddAddressUiState> = _uiState
 
-    fun onAliasChange(value: String) {
-        _uiState.update { it.copy(alias = value) }
+    fun onFullNameChange(value: String) {
+        _uiState.update { it.copy(fullName = value) }
         validate()
     }
 
-    fun onStreetChange(value: String) {
-        _uiState.update { it.copy(street = value) }
+    fun onLine1Change(value: String) {
+        _uiState.update { it.copy(line1 = value) }
         validate()
     }
 
-    fun onNumberChange(value: String) {
-        _uiState.update { it.copy(number = value) }
-    }
-
-    fun onComunaChange(value: String) {
-        _uiState.update { it.copy(comuna = value) }
+    fun onCityChange(value: String) {
+        _uiState.update { it.copy(city = value) }
         validate()
     }
 
     fun onRegionChange(value: String) {
         _uiState.update { it.copy(region = value) }
         validate()
-    }
-
-    fun onDetailsChange(value: String) {
-        _uiState.update { it.copy(details = value) }
     }
 
     fun onDefaultChange(value: Boolean) {
@@ -71,21 +61,19 @@ class AddAddressViewModel : ViewModel() {
             return null
         }
         return AddressInput(
-            alias = current.alias.trim(),
-            direccion = current.street.trim(),
-            numero = current.number.trim().ifBlank { null },
-            comuna = current.comuna.trim(),
+            fullName = current.fullName.trim(),
+            line1 = current.line1.trim(),
+            city = current.city.trim(),
             region = current.region.trim(),
-            isPrimary = current.setAsDefault,
-            complement = current.details.trim().ifBlank { null }
+            isPrimary = current.setAsDefault
         )
     }
 
     private fun validate() {
         val current = _uiState.value
-        val valid = current.alias.isNotBlank() &&
-            current.street.isNotBlank() &&
-            current.comuna.isNotBlank() &&
+        val valid = current.fullName.isNotBlank() &&
+            current.line1.isNotBlank() &&
+            current.city.isNotBlank() &&
             current.region.isNotBlank()
         _uiState.update { it.copy(isValid = valid) }
     }

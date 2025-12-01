@@ -17,11 +17,10 @@ data class RegistrationData(
 )
 
 data class AddressInput(
-    val alias: String,
-    val direccion: String,
-    val numero: String? = null,
-    val comuna: String,
+    val fullName: String,
+    val line1: String,
+    val city: String,
     val region: String,
-    val isPrimary: Boolean = false,
-    val complement: String? = null
+    val country: String = "Chile",
+    val isPrimary: Boolean = false
 )

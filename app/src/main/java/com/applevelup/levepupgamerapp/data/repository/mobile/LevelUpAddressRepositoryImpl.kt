@@ -39,7 +39,7 @@ class LevelUpAddressRepositoryImpl(
     override suspend fun createAddress(run: String, input: AddressInput): LevelUpResult<LevelUpAddress> {
         return runCatching {
             val payload = api.addAddress(run, mapper.toRequest(input))
-            val entity = mapper.fromDto(payload)
+            val entity = mapper.fromDto(payload, run)
             persistRun(run, listOf(payload))
             LevelUpResult.Success(mapper.toDomain(entity))
         }.getOrElse { LevelUpResult.Failure(it) }
@@ -52,7 +52,7 @@ class LevelUpAddressRepositoryImpl(
     ): LevelUpResult<LevelUpAddress> {
         return runCatching {
             val payload = api.updateAddress(run, addressId, mapper.toRequest(input))
-            val entity = mapper.fromDto(payload)
+            val entity = mapper.fromDto(payload, run)
             persistRun(run, listOf(payload))
             LevelUpResult.Success(mapper.toDomain(entity))
         }.getOrElse { LevelUpResult.Failure(it) }
@@ -78,7 +78,7 @@ class LevelUpAddressRepositoryImpl(
         if (clearBeforeInsert) {
             addressDao.clearForRun(run)
         }
-        val entities = addresses.map(mapper::fromDto)
+        val entities = addresses.map { mapper.fromDto(it, run) }
         addressDao.upsertAddresses(entities)
     }
 

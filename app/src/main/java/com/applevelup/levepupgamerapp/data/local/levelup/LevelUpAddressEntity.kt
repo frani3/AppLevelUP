@@ -6,12 +6,11 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "levelup_addresses")
 data class LevelUpAddressEntity(
     @PrimaryKey val id: String,
-    val run: String,
-    val alias: String,
-    val street: String,
-    val numero: String?,
-    val comuna: String,
+    val userRun: String,
+    val fullName: String,
+    val line1: String,
+    val city: String,
     val region: String,
-    val complement: String?,
+    val country: String,
     val isPrimary: Boolean
 )

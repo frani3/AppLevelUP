@@ -53,7 +53,7 @@ fun AddressCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = address.alias,
+                        text = address.fullName,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
@@ -88,27 +88,19 @@ fun AddressCard(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            val streetLine = buildString {
-                append(address.street)
-                address.numero?.takeIf { it.isNotBlank() }?.let {
-                    append(" #")
-                    append(it)
-                }
-            }
-            Text(streetLine, color = Color.LightGray, fontSize = 14.sp)
+            // Línea de dirección
+            Text(address.line1, color = Color.LightGray, fontSize = 14.sp)
+            // Ciudad y región
             val secondary = listOfNotNull(
-                address.comuna.takeIf { it.isNotBlank() },
+                address.city.takeIf { it.isNotBlank() },
                 address.region.takeIf { it.isNotBlank() }
             ).joinToString(separator = " · ")
             if (secondary.isNotBlank()) {
                 Text(secondary, color = Color.Gray, fontSize = 13.sp)
             }
-            address.complement?.takeIf { it.isNotBlank() }?.let { complement ->
-                Text(
-                    text = "Detalles: $complement",
-                    color = Color.Gray,
-                    fontSize = 13.sp
-                )
+            // País
+            if (address.country.isNotBlank()) {
+                Text(address.country, color = Color.Gray, fontSize = 13.sp)
             }
         }
     }

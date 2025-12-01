@@ -1,21 +1,28 @@
 package com.applevelup.levepupgamerapp.data.network.dto
 
+/**
+ * Response DTO for GET /users/{run}/addresses
+ */
 data class AddressDto(
     val id: String,
-    val alias: String,
-    val direccion: String,
-    val numero: String?,
-    val comuna: String,
+    val fullName: String,
+    val line1: String,
+    val city: String,
     val region: String,
-    val run: String,
-    val esPrincipal: Boolean
+    val country: String,
+    val isPrimary: Boolean,
+    val createdAt: String?,
+    val updatedAt: String?
 )
 
+/**
+ * Request DTO for POST/PUT /users/{run}/addresses
+ */
 data class AddressRequestDto(
-    val alias: String,
-    val direccion: String,
-    val numero: String? = null,
-    val comuna: String,
+    val fullName: String,
+    val line1: String,
+    val city: String,
     val region: String,
-    val esPrincipal: Boolean = false
+    val country: String = "Chile",
+    val isPrimary: Boolean = false
 )

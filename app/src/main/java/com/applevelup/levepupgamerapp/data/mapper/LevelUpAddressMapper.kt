@@ -8,36 +8,33 @@ import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpAddress
 
 class LevelUpAddressMapper {
 
-    fun fromDto(dto: AddressDto): LevelUpAddressEntity = LevelUpAddressEntity(
+    fun fromDto(dto: AddressDto, userRun: String): LevelUpAddressEntity = LevelUpAddressEntity(
         id = dto.id,
-        run = dto.run,
-        alias = dto.alias,
-        street = dto.direccion,
-        numero = dto.numero,
-        comuna = dto.comuna,
+        userRun = userRun,
+        fullName = dto.fullName,
+        line1 = dto.line1,
+        city = dto.city,
         region = dto.region,
-        complement = null,
-        isPrimary = dto.esPrincipal
+        country = dto.country,
+        isPrimary = dto.isPrimary
     )
 
     fun toDomain(entity: LevelUpAddressEntity): LevelUpAddress = LevelUpAddress(
         id = entity.id,
-        run = entity.run,
-        alias = entity.alias,
-        street = entity.street,
-        numero = entity.numero,
-        comuna = entity.comuna,
+        fullName = entity.fullName,
+        line1 = entity.line1,
+        city = entity.city,
         region = entity.region,
-        complement = entity.complement,
+        country = entity.country,
         isPrimary = entity.isPrimary
     )
 
     fun toRequest(input: AddressInput): AddressRequestDto = AddressRequestDto(
-        alias = input.alias,
-        direccion = input.direccion,
-        numero = input.numero,
-        comuna = input.comuna,
+        fullName = input.fullName,
+        line1 = input.line1,
+        city = input.city,
         region = input.region,
-        esPrincipal = input.isPrimary
+        country = input.country,
+        isPrimary = input.isPrimary
     )
 }
