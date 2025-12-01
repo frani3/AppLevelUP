@@ -62,6 +62,7 @@ import androidx.navigation.NavController
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpRegion
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResource
 import com.applevelup.levepupgamerapp.domain.model.levelup.LevelUpResult
+import com.applevelup.levepupgamerapp.presentation.navigation.Destinations
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PrimaryPurple
 import com.applevelup.levepupgamerapp.presentation.ui.theme.PureBlackBackground
 import com.applevelup.levepupgamerapp.presentation.viewmodel.AddAddressUiState
@@ -151,7 +152,10 @@ fun AddAddressScreen(
                                 snackbarHostState.showSnackbar("Dirección guardada")
                                 addressViewModel.refreshAddresses(currentRun)
                                 viewModel.resetForm()
-                                navController.popBackStack()
+                                // Navegar a la lista de direcciones limpiando el back stack
+                                navController.navigate(Destinations.Addresses.route) {
+                                    popUpTo(Destinations.Addresses.route) { inclusive = true }
+                                }
                             }
                             is LevelUpResult.Failure -> {
                                 snackbarHostState.showSnackbar(result.throwable.message ?: "No se pudo guardar la dirección")

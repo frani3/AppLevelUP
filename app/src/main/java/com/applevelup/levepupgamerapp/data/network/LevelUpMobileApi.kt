@@ -87,7 +87,7 @@ interface LevelUpMobileApi {
     suspend fun setPrimaryAddress(
         @Path("run") run: String,
         @Path("addressId") addressId: String
-    ): List<AddressDto>
+    ): AddressDto
 
     // Cart endpoints
     @GET("/api/v1/carts/me")

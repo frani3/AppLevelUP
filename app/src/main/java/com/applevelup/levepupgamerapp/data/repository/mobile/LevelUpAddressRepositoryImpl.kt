@@ -68,8 +68,10 @@ class LevelUpAddressRepositoryImpl(
 
     override suspend fun setPrimaryAddress(run: String, addressId: String): LevelUpResult<Unit> {
         return runCatching {
-            val payload = api.setPrimaryAddress(run, addressId)
-            persistRun(run, payload, clearBeforeInsert = true)
+            // El endpoint devuelve la dirección actualizada, no una lista
+            api.setPrimaryAddress(run, addressId)
+            // Refrescar todas las direcciones para obtener el estado actualizado
+            refreshAddresses(run, force = true)
             LevelUpResult.Success(Unit)
         }.getOrElse { LevelUpResult.Failure(it) }
     }
